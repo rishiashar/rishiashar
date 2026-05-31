@@ -94,8 +94,7 @@ Currently exploring AI-assisted design workflows, vibe coding, and how emerging 
 ---
 
 <p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=rishiashar&show_icons=true&hide_border=true&theme=transparent&title_color=ededed&text_color=aaaaaa&icon_color=6366f1" height="160" alt="GitHub Stats" />
-  <img src="https://github-readme-streak-stats.herokuapp.com?user=rishiashar&hide_border=true&theme=transparent&ring=6366f1&fire=6366f1&currStreakLabel=ededed&sideLabels=aaaaaa&dates=666666" height="160" alt="GitHub Streak" />
+  <img src="https://streak-stats.demolab.com?user=rishiashar&hide_border=true&theme=transparent&ring=6366f1&fire=6366f1&currStreakLabel=ededed&sideLabels=aaaaaa&dates=666666" height="160" alt="GitHub Streak" />
 </p>
 
 <p align="center">
