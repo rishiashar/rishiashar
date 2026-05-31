@@ -1,108 +1,124 @@
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:0f0f0f,50:1a1a2e,100:16213e&height=200&section=header&text=Rishi%20Ashar&fontSize=42&fontColor=e0e0e0&fontAlignY=35&desc=Design%20Engineer&descSize=16&descColor=999999&descAlignY=55&animation=fadeIn" />
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:F97316,25:EC4899,50:8B5CF6,75:3B82F6,100:06B6D4&height=220&section=header&text=Rishi%20Ashar&fontSize=48&fontColor=ffffff&fontAlignY=32&desc=Design%20Engineer&descSize=18&descColor=ffffffcc&descAlignY=52&animation=fadeIn" />
 
 <p align="center">
-  <a href="https://rishiashar.com"><code>Portfolio</code></a>&nbsp;&nbsp;&nbsp;
-  <a href="https://www.linkedin.com/in/rishiashar7/"><code>LinkedIn</code></a>&nbsp;&nbsp;&nbsp;
-  <a href="https://x.com/that_rishi07"><code>X</code></a>&nbsp;&nbsp;&nbsp;
-  <a href="https://rishiashar.medium.com/"><code>Writing</code></a>&nbsp;&nbsp;&nbsp;
-  <a href="mailto:rishiasharv@gmail.com"><code>Email</code></a>
+  <a href="https://rishiashar.com">
+    <img src="https://img.shields.io/badge/Portfolio-F97316?style=for-the-badge&logoColor=white" />
+  </a>
+  <a href="https://www.linkedin.com/in/rishiashar7/">
+    <img src="https://img.shields.io/badge/LinkedIn-3B82F6?style=for-the-badge&logo=linkedin&logoColor=white" />
+  </a>
+  <a href="https://x.com/that_rishi07">
+    <img src="https://img.shields.io/badge/X-000000?style=for-the-badge&logo=x&logoColor=white" />
+  </a>
+  <a href="https://rishiashar.medium.com/">
+    <img src="https://img.shields.io/badge/Medium-8B5CF6?style=for-the-badge&logo=medium&logoColor=white" />
+  </a>
+  <a href="mailto:rishiasharv@gmail.com">
+    <img src="https://img.shields.io/badge/Email-EC4899?style=for-the-badge&logo=gmail&logoColor=white" />
+  </a>
 </p>
 
 <br/>
 
-> I design and build at the intersection of **UX, motion, and engineering**.
-> My background in computer science paired with a deep love for design means
-> I ship things that look great *and* work — from interactive prototypes to
-> production-grade interfaces.
->
-> Currently exploring AI-assisted design workflows, vibe coding, and how
-> emerging tools like Cursor, Codex, and Figma Make are reshaping creative work.
+<div align="center">
+
+*I design and build at the intersection of **UX, motion, and engineering**.*
+*From interactive prototypes to production-grade interfaces — things that look great and work even better.*
+
+</div>
 
 <br/>
 
-<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:0f0f0f,50:1a1a2e,100:16213e&height=1" />
+## <img src="https://media.giphy.com/media/WUlplcMpOCEmTGBtBW/giphy.gif" width="28"> &nbsp;Tools I Use
 
-### &nbsp;&nbsp;Experience
+<p align="center">
+  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/figma.png" height="44" alt="Figma" />&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/cursor.png" height="44" alt="Cursor" />&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/claude.png" height="44" alt="Claude Code" />&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/framer.png" height="44" alt="Framer" />&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/miro.png" height="44" alt="Miro" />&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/chatgpt.png" height="44" alt="ChatGPT" />&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/lovable.png" height="44" alt="Lovable" />&nbsp;&nbsp;&nbsp;
+  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/gemini.png" height="44" alt="Gemini" />
+</p>
 
-```
-Autodesk          AI prototype for intelligent activity log analysis
-                  Enterprise settings redesign for team admins
+## <img src="https://media2.giphy.com/media/QssGEmpkyEOhBCb7e1/giphy.gif" width="28"> &nbsp;Tech Stack
 
-MADLab @ UofT     UofT Footprint — low-pressure campus discovery feature
+<p align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=ts,react,nextjs,tailwind,figma,framer&theme=dark" alt="Tech Stack" />
+  </a>
+</p>
+<p align="center">
+  <a href="https://skillicons.dev">
+    <img src="https://skillicons.dev/icons?i=html,css,git,github,vscode,vercel&theme=dark" alt="More Tech" />
+  </a>
+</p>
 
-WeHear            UX research & testing, significantly improved product experience
+<p align="center">
+  <img src="https://img.shields.io/badge/Framer_Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white" />
+  <img src="https://img.shields.io/badge/WebGL-990000?style=for-the-badge&logo=webgl&logoColor=white" />
+  <img src="https://img.shields.io/badge/Web_Audio_API-FF6600?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/SVG_Animations-FFB13B?style=for-the-badge&logo=svg&logoColor=black" />
+</p>
 
-OACAO             End-to-end service design (case study coming soon)
-```
+<br/>
 
-<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:0f0f0f,50:1a1a2e,100:16213e&height=1" />
+## 💼 &nbsp;Experience
 
-### &nbsp;&nbsp;Toolkit
+| Company | Role |
+|---|---|
+| **Autodesk** | AI prototype for intelligent activity log analysis · Enterprise settings redesign |
+| **MADLab @ UofT** | *UofT Footprint* — low-pressure campus discovery feature |
+| **WeHear Innovations** | UX research & testing that significantly improved the product |
+| **OACAO** | End-to-end service design *(case study coming soon)* |
 
-<table>
-  <tr>
-    <td><strong>Design</strong></td>
-    <td>
-      <img src="https://img.shields.io/badge/Figma-1e1e1e?style=flat-square&logo=figma&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Framer-1e1e1e?style=flat-square&logo=framer&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Miro-1e1e1e?style=flat-square&logo=miro&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Rive-1e1e1e?style=flat-square&logo=rive&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Design_Systems-1e1e1e?style=flat-square" />
-      <img src="https://img.shields.io/badge/Motion-1e1e1e?style=flat-square" />
-    </td>
-  </tr>
-  <tr>
-    <td><strong>Code</strong></td>
-    <td>
-      <img src="https://img.shields.io/badge/TypeScript-1e1e1e?style=flat-square&logo=typescript&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/React-1e1e1e?style=flat-square&logo=react&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Next.js-1e1e1e?style=flat-square&logo=nextdotjs&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Tailwind-1e1e1e?style=flat-square&logo=tailwindcss&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Framer_Motion-1e1e1e?style=flat-square&logo=framer&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/WebGL-1e1e1e?style=flat-square&logo=webgl&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Web_Audio-1e1e1e?style=flat-square" />
-    </td>
-  </tr>
-  <tr>
-    <td><strong>AI</strong></td>
-    <td>
-      <img src="https://img.shields.io/badge/Cursor-1e1e1e?style=flat-square&logo=cursor&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Claude-1e1e1e?style=flat-square&logo=anthropic&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Codex-1e1e1e?style=flat-square&logo=openai&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/ChatGPT-1e1e1e?style=flat-square&logo=openai&logoColor=a0a0a0" />
-      <img src="https://img.shields.io/badge/Prompt_Eng-1e1e1e?style=flat-square" />
-      <img src="https://img.shields.io/badge/Context_Eng-1e1e1e?style=flat-square" />
-    </td>
-  </tr>
-</table>
+<br/>
 
-<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:0f0f0f,50:1a1a2e,100:16213e&height=1" />
-
-### &nbsp;&nbsp;Selected Work
+## 🔮 &nbsp;Featured Projects
 
 <table>
   <tr>
     <td width="50%" valign="top">
-      <h4><a href="https://rishiashar.com">rishiashar.com</a></h4>
-      <sub>Motion-rich portfolio with interactive case studies, a node-graph about page, real-time Web Audio UI sound, and an experimental Play lab. Next.js 16 &middot; React 19 &middot; Framer Motion.</sub>
+      <h3 align="center"><a href="https://rishiashar.com">rishiashar.com</a></h3>
+      <p align="center">
+        <a href="https://rishiashar.com">
+          <img src="https://img.shields.io/badge/Live_Site-F97316?style=for-the-badge" />
+        </a>
+      </p>
+      <p>Motion-rich portfolio with interactive case studies, a node-graph about page, real-time Web Audio UI sound, and an experimental Play lab. Built with <strong>Next.js 16 · React 19 · Framer Motion</strong>.</p>
     </td>
     <td width="50%" valign="top">
-      <h4><a href="https://github.com/rishiashar/pinch-gesture-canvas">Gestura</a></h4>
-      <sub>Touchless spatial interface — hand pinch gestures via MediaPipe translated into direct canvas manipulation. Calibration, homography mapping, and hysteresis-based signal processing.</sub>
+      <h3 align="center"><a href="https://github.com/rishiashar/pinch-gesture-canvas">Gestura</a></h3>
+      <p align="center">
+        <a href="https://github.com/rishiashar/pinch-gesture-canvas">
+          <img src="https://img.shields.io/badge/View_Repo-8B5CF6?style=for-the-badge&logo=github&logoColor=white" />
+        </a>
+      </p>
+      <p>Touchless spatial interface — hand pinch gestures via <strong>MediaPipe</strong> translated into direct canvas manipulation. Calibration, homography mapping, and hysteresis-based signal processing.</p>
     </td>
   </tr>
 </table>
 
-<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:0f0f0f,50:1a1a2e,100:16213e&height=1" />
+<br/>
 
-### &nbsp;&nbsp;Off-Screen
+## 🌍 &nbsp;Beyond the Screen
 
-Photography &nbsp;&middot;&nbsp; Rap &amp; music production &nbsp;&middot;&nbsp; Geopolitics &amp; markets &nbsp;&middot;&nbsp; Storytelling
+<p align="center">
+  <img src="https://img.shields.io/badge/Photography-EC4899?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Rap_&_Music-8B5CF6?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Geopolitics-3B82F6?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/Storytelling-06B6D4?style=for-the-badge" />
+</p>
 
 <br/>
 
 <p align="center">
-  <img src="https://streak-stats.demolab.com?user=rishiashar&hide_border=true&background=00000000&ring=555555&fire=888888&currStreakLabel=cccccc&sideLabels=999999&dates=555555&currStreakNum=cccccc&sideNums=999999" height="150" alt="GitHub Streak" />
+  <img src="https://streak-stats.demolab.com?user=rishiashar&theme=radical&hide_border=true" height="170" alt="GitHub Streak" />
 </p>
 
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:16213e,50:1a1a2e,100:0f0f0f&height=120&section=footer" />
+<p align="center">
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=rishiashar&theme=react-dark&hide_border=true&area=true&custom_title=Contribution%20Graph" width="95%" alt="Activity Graph" />
+</p>
+
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:06B6D4,25:3B82F6,50:8B5CF6,75:EC4899,100:F97316&height=120&section=footer" />
