@@ -32,14 +32,14 @@
 ## <img src="https://media.giphy.com/media/WUlplcMpOCEmTGBtBW/giphy.gif" width="28"> &nbsp;Tools I Use
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/figma.png" height="44" alt="Figma" />&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/cursor.png" height="44" alt="Cursor" />&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/claude.png" height="44" alt="Claude Code" />&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/framer.png" height="44" alt="Framer" />&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/miro.png" height="44" alt="Miro" />&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/chatgpt.png" height="44" alt="ChatGPT" />&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/lovable.png" height="44" alt="Lovable" />&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/rishiashar/Portfolio/main/public/logos/borderless/gemini.png" height="44" alt="Gemini" />
+  <img src="./logos/figma.png" height="44" alt="Figma" />&nbsp;&nbsp;&nbsp;
+  <img src="./logos/cursor.png" height="44" alt="Cursor" />&nbsp;&nbsp;&nbsp;
+  <img src="./logos/claude.png" height="44" alt="Claude Code" />&nbsp;&nbsp;&nbsp;
+  <img src="./logos/framer.png" height="44" alt="Framer" />&nbsp;&nbsp;&nbsp;
+  <img src="./logos/miro.png" height="44" alt="Miro" />&nbsp;&nbsp;&nbsp;
+  <img src="./logos/chatgpt.png" height="44" alt="ChatGPT" />&nbsp;&nbsp;&nbsp;
+  <img src="./logos/lovable.png" height="44" alt="Lovable" />&nbsp;&nbsp;&nbsp;
+  <img src="./logos/gemini.png" height="44" alt="Gemini" />
 </p>
 
 ## <img src="https://media2.giphy.com/media/QssGEmpkyEOhBCb7e1/giphy.gif" width="28"> &nbsp;Tech Stack
