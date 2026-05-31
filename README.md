@@ -38,11 +38,35 @@ Currently exploring AI-assisted design workflows, vibe coding, and how emerging 
 
 ### What I Work With
 
-**Design**&ensp; Figma · Framer · Miro · Rive · Design Systems · Interaction Design · Motion
+**Design**
 
-**Code**&ensp; TypeScript · React · Next.js · Tailwind CSS · Framer Motion · WebGL · Web Audio API · SVG Animations
+![Figma](https://img.shields.io/badge/Figma-F24E1E?style=flat&logo=figma&logoColor=white)
+![Framer](https://img.shields.io/badge/Framer-0055FF?style=flat&logo=framer&logoColor=white)
+![Miro](https://img.shields.io/badge/Miro-FFD02F?style=flat&logo=miro&logoColor=050038)
+![Rive](https://img.shields.io/badge/Rive-1D1D1D?style=flat&logo=rive&logoColor=white)
+![Design Systems](https://img.shields.io/badge/Design_Systems-4A154B?style=flat)
+![Interaction Design](https://img.shields.io/badge/Interaction_Design-FF6154?style=flat)
+![Motion](https://img.shields.io/badge/Motion-0055FF?style=flat)
 
-**AI & Tools**&ensp; Cursor · Claude Code · Codex · ChatGPT · Prompt Engineering · Context Engineering
+**Code**
+
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-61DAFB?style=flat&logo=react&logoColor=black)
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat&logo=nextdotjs&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-0055FF?style=flat&logo=framer&logoColor=white)
+![WebGL](https://img.shields.io/badge/WebGL-990000?style=flat&logo=webgl&logoColor=white)
+![Web Audio API](https://img.shields.io/badge/Web_Audio_API-FF6600?style=flat)
+![SVG](https://img.shields.io/badge/SVG_Animations-FFB13B?style=flat&logo=svg&logoColor=black)
+
+**AI & Tools**
+
+![Cursor](https://img.shields.io/badge/Cursor-000000?style=flat&logo=cursor&logoColor=white)
+![Claude](https://img.shields.io/badge/Claude_Code-D4A574?style=flat&logo=anthropic&logoColor=white)
+![Codex](https://img.shields.io/badge/Codex-10A37F?style=flat&logo=openai&logoColor=white)
+![ChatGPT](https://img.shields.io/badge/ChatGPT-74AA9C?style=flat&logo=openai&logoColor=white)
+![Prompt Engineering](https://img.shields.io/badge/Prompt_Engineering-8B5CF6?style=flat)
+![Context Engineering](https://img.shields.io/badge/Context_Engineering-6366F1?style=flat)
 
 ---
 
