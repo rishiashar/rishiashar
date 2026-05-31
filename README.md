@@ -1,4 +1,12 @@
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:F97316,25:EC4899,50:8B5CF6,75:3B82F6,100:06B6D4&height=220&section=header&text=Rishi%20Ashar&fontSize=48&fontColor=ffffff&fontAlignY=32&desc=Design%20Engineer&descSize=18&descColor=ffffffcc&descAlignY=52&animation=fadeIn" />
+<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:F97316,25:EC4899,50:8B5CF6,75:3B82F6,100:06B6D4&height=200&section=header&animation=fadeIn" />
+
+<h1 align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Geist&weight=600&size=36&duration=3000&pause=1000&color=FFFFFF&center=true&vCenter=true&repeat=false&width=500&lines=Hey%2C+I'm+Rishi+Ashar" alt="Hey, I'm Rishi Ashar" />
+</h1>
+
+<p align="center">
+  <img src="https://readme-typing-svg.demolab.com?font=Geist&weight=400&size=18&duration=2500&pause=800&color=AAAAAA&center=true&vCenter=true&repeat=false&width=520&lines=Design+Engineer+crafting+interactive%2C+motion-rich+experiences" alt="Design Engineer" />
+</p>
 
 <p align="center">
   <a href="https://rishiashar.com">
