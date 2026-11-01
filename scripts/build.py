@@ -1013,12 +1013,17 @@ def laptop_cover(screen: Image.Image, colors) -> Image.Image:
     return im
 
 
-WORK = [  # slug, name, context, the site's own one-liner, link
+FEATURED = [  # slug, name, context, the site's own one-liner, link
     ("proberoom", "ProbeRoom", "Side project", "Rehearse user interviews out loud with an AI participant.", "https://proberoom.vercel.app"),
-    ("log-analyzer", "Activity Log Analyzer", "Autodesk", "AI summaries for dense admin activity logs.",
-     f"{SITE}/work/intelligent-activity-log-analyzer"),
     ("gestura", "Gestura", "Experiment", "A canvas you can touch without touching.", "https://pinchgesture.vercel.app"),
 ]
+MORE = [
+    ("log-analyzer", "Activity Log Analyzer", "Autodesk", "AI summaries for dense admin activity logs.",
+     f"{SITE}/work/intelligent-activity-log-analyzer"),
+    ("settings", "Settings Redesign", "Autodesk", "Clearer Team Settings for Autodesk admins.", f"{SITE}/work/settings-redesign"),
+    ("uniconnect", "UniConnect", "UofT", "A student connection platform for new arrivals.", f"{SITE}/work/uniconnect"),
+]
+ROWS = [FEATURED, MORE]   # your own projects get the big frames
 
 
 def covers() -> dict[str, Image.Image]:
@@ -1026,29 +1031,31 @@ def covers() -> dict[str, Image.Image]:
     return {
         "proberoom": cover(Image.open(here / "proberoom.jpg"), *COVER),
         "log-analyzer": cover(site_image("activity-log.png", "/work/previews/autodesk-activity-log-preview.png"), *COVER),
+        "settings": cover(site_image("settings.png", "/work/previews/autodesk-settings-preview.png"), *COVER),
+        "uniconnect": cover(Image.open(here / "uniconnect.jpg"), *COVER),
         "gestura": laptop_cover(Image.open(here / "gestura-app.jpg"),
                                 [["#FFD27A", "#FFE6B5", "#C4E4FF"], ["#FFB48C", "#FFD8B8", "#A8D6FF"], ["#FF9475", "#FFC4A6", "#8FC8FF"]]),
     }
 
 
 ROW_W, GUTTER = 846, 16                  # the hero's width; frames sit flush with its edges
-FRAME_W = (ROW_W - 2 * GUTTER) / 3
 
 
-def tile_pads(i: int) -> tuple[float, float]:
-    return (0 if i == 0 else GUTTER / 2, 0 if i == len(WORK) - 1 else GUTTER / 2)
+def row_layout(n: int):
+    """Frame width and (left, right) padding for each tile in a row of n."""
+    fw = (ROW_W - (n - 1) * GUTTER) / n
+    return fw, [(0 if i == 0 else GUTTER / 2, 0 if i == n - 1 else GUTTER / 2) for i in range(n)]
 
 
-def work_tile(slug, name, meta, caption, art: Image.Image, mode: str, pads) -> None:
+def work_tile(slug, name, meta, caption, art: Image.Image, mode: str, cw: float, pads, rows_of_text: int) -> None:
     """A frame from the Work page: its name above, the cover, the one-liner below."""
     gh = GITHUB[mode]
     pad, pad_r = pads
-    cw = FRAME_W
     W = cw + pad + pad_r
     ch = cw * 5 / 8
     lines = wrap(caption, "ui", 12.5, cw)
     top = 22
-    H = round(top + ch + 14 + 2 * 18)
+    H = round(top + ch + 14 + rows_of_text * 18)   # the row's tallest caption sets everyone's height
     s = Svg(f(W), H, name, f"{name}, {meta}: {caption}")
     img = art.convert("RGB").resize((round(cw * 2), round(ch * 2)), Image.LANCZOS)
     s.add(s.text(pad, 13, name, "ui-sb", 12.5, gh["fg"]), s.text(pad + cw, 13, meta, "ui", 12, gh["muted"], "end"),
@@ -1061,9 +1068,32 @@ def work_tile(slug, name, meta, caption, art: Image.Image, mode: str, pads) -> N
     print(f"work-{slug}-{mode}.svg  {len(data) / 1024:.0f} KB")
 
 
+def readme_work() -> None:
+    """Write the Work rows into README.md between the work markers, widths matched to the tiles."""
+    rows = []
+    for row in ROWS:
+        fw, pads = row_layout(len(row))
+        tiles = ""
+        for (slug, name, meta, caption, link), (pl, pr) in zip(row, pads):
+            pct = f"{(fw + pl + pr) / ROW_W * 100 - .05:.2f}%"      # a hair under 100% so a row never wraps
+            tiles += (f'<a href="{link}"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-{slug}-dark.svg">'
+                      f'<img src="assets/work-{slug}-light.svg" width="{pct}" alt="{name}, {meta}: {caption}"></picture></a>')
+        rows.append(f"<p>{tiles}</p>")
+    path = ROOT / "README.md"
+    text = path.read_text(encoding="utf-8")
+    start, end = "<!-- work:start -->", "<!-- work:end -->"
+    head, rest = text.split(start)
+    _, tail = rest.split(end)
+    path.write_text(head + start + "\n" + "\n\n".join(rows) + "\n" + end + tail, encoding="utf-8")
+
+
 if __name__ == "__main__":
     art = covers()
     for mode in ("light", "dark"):
         hero(mode)
-        for i, (slug, name, meta, caption, _) in enumerate(WORK):
-            work_tile(slug, name, meta, caption, art[slug], mode, tile_pads(i))
+        for row in ROWS:
+            fw, pads = row_layout(len(row))
+            lines = max(len(wrap(caption, "ui", 12.5, fw)) for _, _, _, caption, _ in row)
+            for (slug, name, meta, caption, _), p in zip(row, pads):
+                work_tile(slug, name, meta, caption, art[slug], mode, fw, p, lines)
+    readme_work()
