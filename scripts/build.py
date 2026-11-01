@@ -47,6 +47,8 @@ AMBER = "#F5A524"
 PACKAGES = {
     "geist": "https://registry.npmjs.org/geist/-/geist-1.9.0.tgz",
     "fraunces": "https://registry.npmjs.org/@fontsource-variable/fraunces/-/fraunces-5.3.0.tgz",
+    "inter": "https://registry.npmjs.org/@fontsource-variable/inter/-/inter-5.3.0.tgz",
+    "manrope": "https://registry.npmjs.org/@fontsource-variable/manrope/-/manrope-5.3.0.tgz",
 }
 FONT_FILES = {
     # key: (package, path inside tarball, variable-font instance or None)
@@ -56,15 +58,26 @@ FONT_FILES = {
     "mono": ("geist", "package/dist/fonts/geist-mono/GeistMono-Regular.woff2", None),
     "serif": ("fraunces", "package/files/fraunces-latin-full-normal.woff2",
               {"opsz": 72, "wght": 400, "SOFT": 0, "WONK": 0}),
+    # Figma's UI font (UI3 uses Inter at 450 / 550)
+    "ui": ("inter", "package/files/inter-latin-wght-normal.woff2", {"wght": 450}),
+    "ui-md": ("inter", "package/files/inter-latin-wght-normal.woff2", {"wght": 550}),
+    "ui-sb": ("inter", "package/files/inter-latin-wght-normal.woff2", {"wght": 600}),
+    # rishiashar.com body font
+    "body": ("manrope", "package/files/manrope-latin-wght-normal.woff2", {"wght": 450}),
+    "body-md": ("manrope", "package/files/manrope-latin-wght-normal.woff2", {"wght": 550}),
 }
 CSS_FAMILY = {
     "sans": ("GS", 400), "sans-md": ("GS", 500), "sans-sb": ("GS", 600),
     "mono": ("GM", 400), "serif": ("FR", 400),
+    "ui": ("IN", 450), "ui-md": ("IN", 550), "ui-sb": ("IN", 600),
+    "body": ("MR", 450), "body-md": ("MR", 550),
 }
 FALLBACK = {
     "GS": "ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif",
     "GM": "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace",
     "FR": "Georgia,'Times New Roman',serif",
+    "IN": "Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif",
+    "MR": "Manrope,ui-sans-serif,system-ui,sans-serif",
 }
 
 
@@ -289,312 +302,495 @@ def dot_grid(svg: Svg, pid: str, step=16, color="#1C1C21", r=0.9) -> None:
 
 
 # ==================================================================== HERO ===
+# Figma UI3, dark theme.
+FG_TABBAR = "#1F1F1F"
+FG_PANEL = "#2C2C2C"
+FG_CANVAS = "#1E1E1E"
+FG_BORDER = "#444444"
+FG_DIV = "#383838"
+FG_FIELD = "#383838"
+FG_T1 = "#FFFFFF"
+FG_T2 = "#C2C2C2"
+FG_T3 = "#8C8C8C"
+FG_ROW_SEL = "#33475F"
+SITE_BG = "#F5F5F5"     # rishiashar.com
+SITE_INK = "#111111"
+
+
+def vis_frames(windows, fade=.12):
+    """Opacity keyframes for a list of visible windows [(start, end|None)]."""
+    fr = [(0, f"opacity:{1 if windows[0][0] == 0 else 0}", None)]
+    for a, b in windows:
+        if a > 0:
+            fr += [(a, "opacity:0", None), (a + fade, "opacity:1", None)]
+        if b is not None:
+            fr += [(b, "opacity:1", None), (b + fade, "opacity:0", None)]
+    return fr
+
+
+def chev(x, y, color=FG_T2, s=3.2):
+    return (f'<path d="M{f(x - s)} {f(y - s / 2)} L{f(x)} {f(y + s / 2)} L{f(x + s)} {f(y - s / 2)}" '
+            f'stroke="{color}" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>')
+
+
+def plus(x, y, color=FG_T2):
+    return f'<path d="M{x - 5} {y} H{x + 5} M{x} {y - 5} V{y + 5}" stroke="{color}" stroke-width="1.1" stroke-linecap="round"/>'
+
+
+def eye(x, y, color=FG_T2):
+    return (f'<path d="M{x - 6} {y} Q{x} {y - 6} {x + 6} {y} Q{x} {y + 6} {x - 6} {y}Z" stroke="{color}" stroke-width="1.1"/>'
+            f'<circle cx="{x}" cy="{y}" r="1.8" fill="{color}"/>')
+
+
+def figma_logo(x, y, s=1.0, color="#fff"):
+    """Monochrome Figma mark, 12 x 18 units, top-left at (x, y)."""
+    return (f'<g transform="translate({x} {y}) scale({s})" fill="{color}">'
+            '<path d="M6 0H3A3 3 0 0 0 3 6H6Z"/><path d="M6 0H9A3 3 0 0 1 9 6H6Z"/>'
+            '<path d="M6 6H3A3 3 0 0 0 3 12H6Z"/><circle cx="9" cy="9" r="3"/>'
+            '<path d="M3 12H6V15A3 3 0 1 1 3 12Z"/></g>')
+
+
+TOOL_ICONS = {
+    "move": '<path d="M-4 -6.5 L-4 5.5 L-1 2.6 L1.3 7.3 L3.1 6.5 L.9 1.9 L4.9 1.9 Z" fill="#fff" stroke="#fff" stroke-width=".5" stroke-linejoin="round"/>',
+    "frame": '<path d="M-2.5 -7 V7 M2.5 -7 V7 M-7 -2.5 H7 M-7 2.5 H7" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>',
+    "rect": '<rect x="-6" y="-6" width="12" height="12" rx="1" stroke="#fff" stroke-width="1.2"/>',
+    "pen": '<path d="M0 -7 L5 1 L2.5 6.5 H-2.5 L-5 1 Z M0 -7 V-.8" stroke="#fff" stroke-width="1.15" stroke-linejoin="round"/><circle cx="0" cy=".6" r="1.3" stroke="#fff" stroke-width="1.1"/>',
+    "text": '<path d="M-5.5 -6 H5.5 M0 -6 V7" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>',
+    "comment": '<path d="M-6.3 6.3 L-5.4 2.6 A6.5 6.5 0 1 1 -2.6 5.4 Z" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>',
+}
+LAYER_ICONS = {
+    "frame": '<path d="M-2.4 -5 V5 M2.4 -5 V5 M-5 -2.4 H5 M-5 2.4 H5" stroke="{c}" stroke-width="1" stroke-linecap="round"/>',
+    "text": '<path d="M-4 -4.5 H4 M0 -4.5 V5" stroke="{c}" stroke-width="1.15" stroke-linecap="round"/>',
+    "auto": '<rect x="-5" y="-5" width="10" height="10" rx="1.5" stroke="{c}"/><path d="M-2.5 -2 H2.5 M-2.5 0 H2.5 M-2.5 2 H2.5" stroke="{c}" stroke-linecap="round"/>',
+}
+
+
 def hero() -> None:
-    W, H = 846, 440
-    s = Svg(W, H, "A design tool canvas. Rishi's cursor draws a frame and types 'Rishi Ashar', "
-            "then Claude's cursor joins and draws an ease-out-expo motion curve that animates a dot "
-            "with a little UI sound. Inspector: experience designer in Toronto prototyping with AI. "
-            "Stack: TypeScript, React, Next.js, Framer Motion, WebGL, Web Audio.",
+    W, H = 846, 480
+    s = Svg(W, H, "A Figma file in dark mode. Rishi draws a frame and types 'Rishi Ashar' in Fraunces, "
+            "Claude joins and fills in the about text and stack chips (TypeScript, React, Next.js, Framer Motion, "
+            "WebGL, Web Audio), then Rishi opens the Prototype tab and drags a custom bezier into ease-out-expo. "
+            "Experience designer in Toronto, designing and prototyping ideas with AI and emerging tools.",
             "Rishi Ashar", "h")
-    LP, RP = 176, 584              # left panel right edge, right panel left edge
-    TB = 40                        # title bar height
+    TB, LP, RP = 36, 200, 610
+    CX0, CX1 = LP + 1, RP - 1
     s.defs.append(f'<clipPath id="win"><rect width="{W}" height="{H}" rx="12"/></clipPath>')
-    s.defs.append(f'<clipPath id="cv"><rect x="{LP + 1}" y="{TB + 1}" width="{RP - LP - 1}" height="{H - TB - 1}"/></clipPath>')
-    dot_grid(s, "grid")
-    s.defs.append('<filter id="sh" x="-20%" y="-20%" width="140%" height="150%">'
-                  '<feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000" flood-opacity=".55"/></filter>')
+    s.defs.append(f'<clipPath id="cv"><rect x="{CX0}" y="{TB}" width="{CX1 - CX0}" height="{H - TB}"/></clipPath>')
+    s.defs.append('<filter id="sh" x="-20%" y="-40%" width="140%" height="200%">'
+                  '<feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity=".45"/></filter>')
+
+    # ---- timeline -------------------------------------------------------------
+    T_FRAME_TOOL, T_DRAG0, T_DRAG1 = .35, .9, 1.7
+    T_TEXT_TOOL, T_TEXT = 1.85, 2.25
+    T_ESC = 3.45
+    T_CL_IN, T_ABOUT, T_STACK, T_TOOLS = 3.6, 3.95, 4.35, 5.3
+    T_SEL2, T_PROTO = 5.75, 6.1
+    T_DRAG_B0, T_DRAG_B1 = 6.4, 7.05
+    T_LOOP = 7.2
+    T_IDLE = 7.6
 
     s.add('<g clip-path="url(#win)">')
-    s.add(f'<rect width="{W}" height="{H}" fill="{BG}"/>')
+    s.add(f'<rect width="{W}" height="{H}" fill="{FG_CANVAS}"/>')
 
-    # ---- canvas -------------------------------------------------------------
-    s.add(f'<rect x="{LP}" y="{TB}" width="{RP - LP}" height="{H - TB}" fill="url(#grid)"/>')
+    # ---- canvas: the frame (a slice of rishiashar.com) -------------------------
+    fx, fw = 245, 320
+    fy = 84
+    nx, ny, nsize = fx + 22, fy + 60, 38
+    about = wrap("Experience designer in Toronto, designing and prototyping ideas with AI and emerging tools.",
+                 "body", 11, fw - 44)
+    ay0 = ny + 25
+    stack = ["TypeScript", "React", "Next.js", "Framer Motion", "WebGL", "Web Audio"]
+    chips, cx, cy = [], nx, ay0 + len(about) * 16 + 10
+    for name in stack:
+        cw = FONTS["body-md"].width(name, 10) + 20
+        if cx + cw > fx + fw - 22:
+            cx, cy = nx, cy + 28
+        chips.append((cx, cy, cw, name))
+        cx += cw + 6
+    chips_bottom = cy + 22
+    tools_y = chips_bottom + 26
+    tools_line = "Made with Figma, Cursor & Claude Code"
+    fh = int(tools_y - fy + 18)
 
-    fx, fy, fw, fh = 220, 94, 320, 212
-    T_DRAG0, T_DRAG1 = 0.9, 1.7
-    T_TEXT = 2.3
-    T_SUB = 3.45
-    T_CL_IN, T_CL_DRAW0, T_CL_DRAW1 = 3.7, 4.3, 5.2
-    T_PLAY = 6.1
-    T_IDLE = 6.4
-
-    # frame (grows from top-left)
+    # frame grows from top-left while dragging
     sx = s.anim([(0, "transform:scale(0,0);opacity:0", None), (T_DRAG0, "transform:scale(0,0);opacity:1", EASE),
                  (T_DRAG1, "transform:scale(1,1);opacity:1", None)])
-    s.add(f'<g transform="translate({fx} {fy})"><g class="{sx}">'
-          f'<rect width="{fw}" height="{fh}" rx="2" fill="#111114" stroke="{LINE_2}" vector-effect="non-scaling-stroke" filter="url(#sh)"/>'
-          f'</g></g>')
-    lbl = s.anim([(0, "opacity:0", None), (T_DRAG0 + .1, "opacity:0", None), (T_DRAG0 + .3, "opacity:1", None)])
-    s.add(f'<g class="{lbl}">' + s.text(fx, fy - 8, "Hero", "sans-md", 11, TEXT_3) + "</g>")
+    s.add(f'<g transform="translate({fx} {fy})"><g class="{sx}"><rect width="{fw}" height="{fh}" fill="{SITE_BG}"/></g></g>')
 
-    # name, typed one glyph at a time
+    # frame label: grey, overlaid by blue while selected
+    lab_in = s.anim([(0, "opacity:0", None), (T_DRAG0 + .05, "opacity:0", None), (T_DRAG0 + .2, "opacity:1", None)])
+    s.add(f'<g class="{lab_in}">' + s.text(fx, fy - 7, "Profile", "ui", 11, FG_T3) + "</g>")
+    lab_sel = s.anim(vis_frames([(T_DRAG0 + .05, T_TEXT), (T_SEL2, None)], .05))
+    s.add(f'<g class="{lab_sel}">' + s.text(fx, fy - 7, "Profile", "ui", 11, BLUE) + "</g>")
+
+    # name, typed glyph by glyph
     name = "Rishi Ashar"
-    nx, ny, nsize = fx + 24, fy + 64, 42
-    x = nx
-    char_times = []
+    x, char_times = nx, []
     for i, ch in enumerate(name):
-        t = T_TEXT + 0.05 + i * 0.085
+        t = T_TEXT + .1 + i * .085
         char_times.append((t, x))
         if ch != " ":
             c = s.anim([(0, "opacity:0", "steps(1,end)"), (t, "opacity:1", None)])
-            s.add(f'<g class="{c}">' + s.text(x, ny, ch, "serif", nsize, "#F4F4F5") + "</g>")
+            s.add(f'<g class="{c}">' + s.text(x, ny, ch, "serif", nsize, SITE_INK) + "</g>")
         x += FONTS["serif"].advance(ch, nsize)
     name_end = x
-    # caret
-    caret_frames = [(0, f"opacity:0;transform:translateX({f(nx)}px)", "steps(1,end)"),
-                    (T_TEXT, f"opacity:1;transform:translateX({f(nx)}px)", "steps(1,end)")]
-    xs = [cx for _, cx in char_times[1:]] + [name_end]
-    for (t, _), cx in zip(char_times, xs):
-        caret_frames.append((t + .001, f"opacity:1;transform:translateX({f(cx)}px)", "steps(1,end)"))
-    tt = char_times[-1][0] + .25
-    caret_frames += [(tt, f"opacity:0;transform:translateX({f(name_end)}px)", "steps(1,end)"),
-                     (tt + .25, f"opacity:1;transform:translateX({f(name_end)}px)", "steps(1,end)"),
-                     (T_SUB, f"opacity:0;transform:translateX({f(name_end)}px)", None)]
-    c = s.anim(caret_frames)
-    s.add(f'<g class="{c}" style="opacity:0"><rect x="0" y="{ny - 33}" width="2" height="42" fill="{BLUE}"/></g>')
+    t_typed = char_times[-1][0]
+    # text box outline (auto-width grows while typing) + caret
+    widths = [4] + [cx_ - nx + 4 for _, cx_ in char_times[1:]] + [name_end - nx + 4]
+    kt = [0, T_TEXT / T_ESC] + [t / T_ESC for t, _ in char_times]
+    vals = [widths[0], widths[0]] + widths[1:]
+    tb = s.anim(vis_frames([(T_TEXT, T_ESC)], .02))
+    s.add(f'<g class="{tb}" style="opacity:0"><rect x="{f(nx - 2)}" y="{ny - 33}" width="{f(name_end - nx + 4)}" height="44" stroke="{BLUE}">'
+          f'<animate attributeName="width" values="{";".join(f(v) for v in vals)}" keyTimes="{";".join(f(min(k, 1)) for k in kt)}" '
+          f'dur="{T_ESC}s" calcMode="discrete" fill="freeze"/></rect></g>')
+    cf = [(0, f"opacity:0;transform:translateX({f(nx)}px)", "steps(1,end)"), (T_TEXT, f"opacity:1;transform:translateX({f(nx)}px)", "steps(1,end)")]
+    for (t, _), cx_ in zip(char_times, [c for _, c in char_times[1:]] + [name_end]):
+        cf.append((t + .001, f"opacity:1;transform:translateX({f(cx_)}px)", "steps(1,end)"))
+    cf += [(t_typed + .3, f"opacity:0;transform:translateX({f(name_end)}px)", "steps(1,end)"),
+           (t_typed + .6, f"opacity:1;transform:translateX({f(name_end)}px)", "steps(1,end)"),
+           (T_ESC, f"opacity:0;transform:translateX({f(name_end)}px)", None)]
+    s.add(f'<g class="{s.anim(cf)}" style="opacity:0"><rect x="0" y="{ny - 30}" width="1.5" height="38" fill="{BLUE}"/></g>')
 
-    sub = s.anim([(0, "opacity:0;transform:translateY(5px)", None), (T_SUB, "opacity:0;transform:translateY(5px)", EASE),
-                  (T_SUB + .45, "opacity:1;transform:translateY(0)", None)])
-    s.add(f'<g class="{sub}">' + s.text(nx + 1, fy + 92, "Experience designer · Toronto", "sans", 13.5, TEXT_2) + "</g>")
+    # Claude fills in about, stack chips, tools line
+    ab = s.anim([(0, "opacity:0;transform:translateY(4px)", None), (T_ABOUT, "opacity:0;transform:translateY(4px)", OUT_EXPO),
+                 (T_ABOUT + .45, "opacity:1;transform:translateY(0)", None)])
+    s.add(f'<g class="{ab}">' + "".join(s.text(nx, ay0 + i * 16, ln, "body", 11, "#555555") for i, ln in enumerate(about)) + "</g>")
+    chip_times = []
+    for i, (cx_, cy_, cw, label) in enumerate(chips):
+        t = T_STACK + .1 + i * .14
+        chip_times.append(t)
+        a = s.anim([(0, "opacity:0;transform:scale(.6)", None), (t, "opacity:0;transform:scale(.6)", OUT_EXPO),
+                    (t + .4, "opacity:1;transform:scale(1)", None)])
+        s.add(f'<g transform="translate({f(cx_ + cw / 2)} {cy_ + 11})"><g class="{a}">'
+              f'<rect x="{f(-cw / 2)}" y="-11" width="{f(cw)}" height="22" rx="11" fill="#FFFFFF" stroke="#E2E2E2"/>'
+              + s.text(0, 3.6, label, "body-md", 10, "#2A2A2A", "middle") + "</g></g>")
+    tl = s.anim([(0, "opacity:0", None), (T_TOOLS, "opacity:0", None), (T_TOOLS + .3, "opacity:1", None)])
+    s.add(f'<g class="{tl}">' + s.text(nx, tools_y, tools_line, "body", 10, "#8A8A8A") + "</g>")
 
-    # easing editor
-    bx, by, bw, bh = fx + 24, fy + 114, 120, 74
-    p0 = (bx + 14, by + bh - 14)
-    p3 = (bx + bw - 14, by + 14)
-    dx, dy = p3[0] - p0[0], p3[1] - p0[1]
-    p1 = (p0[0] + .16 * dx, p0[1] + 1 * dy)
-    p2 = (p0[0] + .30 * dx, p0[1] + 1 * dy)
-    box = s.anim([(0, "opacity:0", None), (T_CL_DRAW0 - .15, "opacity:0", None), (T_CL_DRAW0 + .1, "opacity:1", None)])
-    s.add(f'<g class="{box}"><rect x="{bx}" y="{by}" width="{bw}" height="{bh}" rx="8" fill="#0D0D10" stroke="{LINE_2}"/>'
-          f'<path d="M{f(p0[0])} {f(by + 8)} V{f(p0[1])} H{f(bx + bw - 8)}" stroke="#25252B" stroke-dasharray="2 3"/></g>')
-    pts, plen = arc_samples(p0, p1, p2, p3, 14)
-    curve = s.anim([(0, f"stroke-dashoffset:{f(plen)}", None), (T_CL_DRAW0, f"stroke-dashoffset:{f(plen)}", None),
-                    (T_CL_DRAW1, "stroke-dashoffset:0", None)])
-    s.add(f'<path class="{curve}" d="M{f(p0[0])} {f(p0[1])} C{f(p1[0])} {f(p1[1])} {f(p2[0])} {f(p2[1])} {f(p3[0])} {f(p3[1])}" '
-          f'stroke="#F4F4F5" stroke-width="2" stroke-linecap="round" stroke-dasharray="{f(plen)}"/>')
-    hd = s.anim([(0, "opacity:0", None), (T_CL_DRAW1, "opacity:0", EASE), (T_CL_DRAW1 + .3, "opacity:1", None)])
-    s.add(f'<g class="{hd}" stroke="{BLUE}">'
-          f'<line x1="{f(p0[0])}" y1="{f(p0[1])}" x2="{f(p1[0])}" y2="{f(p1[1])}"/>'
-          f'<line x1="{f(p3[0])}" y1="{f(p3[1])}" x2="{f(p2[0])}" y2="{f(p2[1])}"/>'
-          f'<circle cx="{f(p1[0])}" cy="{f(p1[1])}" r="3.5" fill="{BG}" stroke-width="1.5"/>'
-          f'<circle cx="{f(p2[0])}" cy="{f(p2[1])}" r="3.5" fill="{BG}" stroke-width="1.5"/></g>')
-    s.add(f'<circle cx="{f(p0[0])}" cy="{f(p0[1])}" r="2.5" fill="#F4F4F5" class="{box}"/>')
-    s.add(f'<circle cx="{f(p3[0])}" cy="{f(p3[1])}" r="2.5" fill="#F4F4F5" class="{hd}"/>')
+    # Claude's selections (collaborator colour)
+    about_w = max(FONTS["body"].width(ln, 11) for ln in about)
+    boxes = [((nx - 3, ay0 - 12, about_w + 6, len(about) * 16 + 4), T_ABOUT, T_STACK),
+             ((nx - 3, chips[0][1] - 3, fw - 44 + 6, chips_bottom - chips[0][1] + 6), T_STACK, T_TOOLS),
+             ((nx - 3, tools_y - 12, FONTS["body"].width(tools_line, 10) + 6, 17), T_TOOLS, T_TOOLS + .45)]
+    for (bx, by, bw, bh), a, b in boxes:
+        c = s.anim(vis_frames([(a, b)], .05))
+        s.add(f'<rect class="{c}" style="opacity:0" x="{f(bx)}" y="{f(by)}" width="{f(bw)}" height="{f(bh)}" stroke="{CLAUDE}" stroke-width="1.5"/>')
 
-    # motion preview: track, dot, ripple, waveform
-    tx0, tx1, ty = fx + 172, fx + 294, by + bh / 2 + 6
-    L = tx1 - tx0
-    show = s.anim([(0, "opacity:0", None), (T_PLAY - .45, "opacity:0", EASE), (T_PLAY - .15, "opacity:1", None)])
-    s.add(f'<g class="{show}">'
-          f'<line x1="{tx0}" y1="{f(ty)}" x2="{tx1}" y2="{f(ty)}" stroke="#26262C" stroke-width="2" stroke-linecap="round"/>'
-          + s.text(tx0 - 7, by + bh - 1, "out-expo · 600ms", "mono", 10, TEXT_3) + "</g>")
-    P = 2.4
-    loop = [(0, "transform:translateX(0)", OUT_EXPO), (P * .25, f"transform:translateX({L}px)", None),
-            (P * .5, f"transform:translateX({L}px)", OUT_EXPO), (P * .75, "transform:translateX(0)", None),
-            (P, "transform:translateX(0)", None)]
-    dot = s.anim(loop, iterations="infinite", delay=T_PLAY)
-    for end_x, at in ((tx1, .25), (tx0, .75)):
-        rp = s.anim([(0, "transform:scale(.4);opacity:0", "steps(1,end)"), (P * at, "transform:scale(.4);opacity:.7", "ease-out"),
-                     (P * at + .55, "transform:scale(2.6);opacity:0", None), (P, "transform:scale(2.6);opacity:0", None)],
-                    iterations="infinite", delay=T_PLAY)
-        s.add(f'<g transform="translate({end_x} {f(ty)})"><circle class="{rp}" r="7" stroke="{RISHI}" stroke-width="1.5" style="opacity:0"/></g>')
-    s.add(f'<g class="{show}"><g transform="translate({tx0} {f(ty)})"><g class="{dot}">'
-          f'<circle r="11" fill="{RISHI}" opacity=".18"/><circle r="6.5" fill="{RISHI}"/><circle r="2.2" fill="#fff"/></g></g></g>')
-    heights = [5, 9, 14, 8, 12, 6, 10, 4]
-    wv_x0, wv_y = tx1 - (len(heights) - 1) * 6, by + 14
-    for i, hgt in enumerate(heights):
-        k = .25 + i * .012
-        frames = [(0, "transform:scaleY(.35)", None), (P * (k - .01), "transform:scaleY(.35)", "ease-out"),
-                  (P * k + .06, "transform:scaleY(1)", "ease-in"), (P * k + .45, "transform:scaleY(.35)", None),
-                  (P * (k + .49), "transform:scaleY(.35)", "ease-out"), (P * (k + .5) + .06, "transform:scaleY(1)", "ease-in"),
-                  (P * (k + .5) + .45, "transform:scaleY(.35)", None), (P, "transform:scaleY(.35)", None)]
-        frames.sort(key=lambda fr: fr[0])
-        bar = s.anim(frames, iterations="infinite", delay=T_PLAY)
-        s.add(f'<g class="{show}"><g transform="translate({f(wv_x0 + i * 6)} {f(wv_y)})"><g class="{bar}">'
-              f'<rect x="-1.25" y="{-hgt / 2}" width="2.5" height="{hgt}" rx="1.25" fill="{RISHI}" opacity=".85"/></g></g></g>')
-
-    # Rishi's selection on the frame (blue) + handles + size badge
-    sel = s.anim([(0, "opacity:0", "steps(1,end)"), (T_DRAG0, "opacity:1", "steps(1,end)"), (T_TEXT - .05, "opacity:0", None)])
+    # Rishi's selection on the frame: once while dragging, then again at the end
     hs = 7
-    s.add(f'<g class="{sel}" style="opacity:0">')
-    s.add(f'<rect x="{fx}" y="{fy}" width="{fw}" height="{fh}" stroke="{BLUE}" stroke-width="1.5">'
-          f'<animate attributeName="width" values="0;0;{fw}" keyTimes="0;{f(T_DRAG0 / T_DRAG1)};1" dur="{T_DRAG1}s" '
-          f'calcMode="spline" keySplines="0 0 1 1;.45 0 .2 1" fill="freeze"/>'
-          f'<animate attributeName="height" values="0;0;{fh}" keyTimes="0;{f(T_DRAG0 / T_DRAG1)};1" dur="{T_DRAG1}s" '
-          f'calcMode="spline" keySplines="0 0 1 1;.45 0 .2 1" fill="freeze"/></rect>')
-    for ox, oy in ((0, 0), (1, 0), (0, 1), (1, 1)):
-        anims = ""
-        if ox:
-            anims += (f'<animate attributeName="x" values="{fx - hs / 2};{fx - hs / 2};{fx + fw - hs / 2}" '
-                      f'keyTimes="0;{f(T_DRAG0 / T_DRAG1)};1" dur="{T_DRAG1}s" calcMode="spline" keySplines="0 0 1 1;.45 0 .2 1" fill="freeze"/>')
-        if oy:
-            anims += (f'<animate attributeName="y" values="{fy - hs / 2};{fy - hs / 2};{fy + fh - hs / 2}" '
-                      f'keyTimes="0;{f(T_DRAG0 / T_DRAG1)};1" dur="{T_DRAG1}s" calcMode="spline" keySplines="0 0 1 1;.45 0 .2 1" fill="freeze"/>')
-        s.add(f'<rect x="{f(fx + ox * fw - hs / 2)}" y="{f(fy + oy * fh - hs / 2)}" width="{hs}" height="{hs}" rx="1.5" '
-              f'fill="#fff" stroke="{BLUE}" stroke-width="1.5">{anims}</rect>')
-    s.add("</g>")
-    badge = s.anim([(0, "opacity:0", None), (T_DRAG1 - .05, "opacity:0", None), (T_DRAG1 + .1, "opacity:1", "steps(1,end)"),
-                    (T_TEXT - .05, "opacity:0", None)])
+    ktd = f(T_DRAG0 / T_DRAG1)
+    spl = "0 0 1 1;.45 0 .2 1"
+
+    def grow(attr, a, b):
+        return (f'<animate attributeName="{attr}" values="{f(a)};{f(a)};{f(b)}" keyTimes="0;{ktd};1" dur="{T_DRAG1}s" '
+                f'calcMode="spline" keySplines="{spl}" fill="freeze"/>')
+
+    def handles(animated):
+        out = ""
+        for ox, oy in ((0, 0), (1, 0), (0, 1), (1, 1)):
+            an = ""
+            if animated and ox:
+                an += grow("x", fx - hs / 2, fx + fw - hs / 2)
+            if animated and oy:
+                an += grow("y", fy - hs / 2, fy + fh - hs / 2)
+            out += (f'<rect x="{f(fx + ox * fw - hs / 2)}" y="{f(fy + oy * fh - hs / 2)}" width="{hs}" height="{hs}" '
+                    f'fill="#fff" stroke="{BLUE}">{an}</rect>')
+        return out
+
+    sel1 = s.anim(vis_frames([(T_DRAG0, T_TEXT)], .02))
+    s.add(f'<g class="{sel1}" style="opacity:0"><rect x="{fx}" y="{fy}" width="{fw}" height="{fh}" stroke="{BLUE}">'
+          f'{grow("width", 0, fw)}{grow("height", 0, fh)}</rect>{handles(True)}</g>')
+    sel2 = s.anim(vis_frames([(T_SEL2, None)], .02))
+    s.add(f'<g class="{sel2}"><rect x="{fx}" y="{fy}" width="{fw}" height="{fh}" stroke="{BLUE}"/>{handles(False)}</g>')
     bt = f"{fw} × {fh}"
-    bw_ = FONTS["sans-md"].width(bt, 10.5) + 12
-    s.add(f'<g class="{badge}" style="opacity:0"><rect x="{f(fx + fw / 2 - bw_ / 2)}" y="{fy + fh + 8}" width="{f(bw_)}" height="18" rx="4" fill="{BLUE}"/>'
-          + s.text(fx + fw / 2, fy + fh + 20.5, bt, "sans-md", 10.5, "#fff", "middle") + "</g>")
+    bw_ = FONTS["ui-md"].width(bt, 11) + 10
+    badge = s.anim(vis_frames([(T_DRAG1 - .02, T_TEXT), (T_SEL2, None)], .05))
+    s.add(f'<g class="{badge}"><rect x="{f(fx + fw / 2 - bw_ / 2)}" y="{fy + fh + 8}" width="{f(bw_)}" height="17" rx="3" fill="{BLUE}"/>'
+          + s.text(fx + fw / 2, fy + fh + 20, bt, "ui-md", 11, "#fff", "middle") + "</g>")
 
-    # Claude's selection on the easing box (coral, like a collaborator's selection)
-    csel = s.anim([(0, "opacity:0", "steps(1,end)"), (T_CL_DRAW0, "opacity:1", "steps(1,end)"), (T_CL_DRAW1 + .5, "opacity:0", None)])
-    s.add(f'<g class="{csel}" style="opacity:0"><rect x="{bx - 3}" y="{by - 3}" width="{bw + 6}" height="{bh + 6}" rx="10" stroke="{CLAUDE}" stroke-width="1.5"/></g>')
+    # ---- floating toolbar (UI3) --------------------------------------------------
+    tools = [("move", True), ("frame", True), ("rect", True), ("pen", True), ("text", False), ("comment", False)]
+    cells, x = [], 8
+    for tname, has_chev in tools:
+        w = 42 if has_chev else 32
+        cells.append((tname, x, w, has_chev))
+        x += w + 2
+    sep_x = x + 3
+    x += 8
+    act_x = x
+    x += 34
+    dev_x = x
+    x += 48
+    tb_w = x + 6
+    tb_x = round((CX0 + CX1) / 2 - tb_w / 2)
+    tb_y = H - 60
+    s.add(f'<g transform="translate({tb_x} {tb_y})"><rect width="{tb_w}" height="48" rx="13" fill="{FG_PANEL}" stroke="{FG_BORDER}" stroke-width=".8" filter="url(#sh)"/>')
+    active = {"move": [(0, T_FRAME_TOOL), (T_ESC, None)], "frame": [(T_FRAME_TOOL, T_TEXT_TOOL)], "text": [(T_TEXT_TOOL, T_ESC)]}
+    for tname, cx_, w, has_chev in cells:
+        if tname in active:
+            hl = s.anim(vis_frames(active[tname], .01))
+            base = "" if tname == "move" else ' style="opacity:0"'
+            s.add(f'<rect class="{hl}"{base} x="{cx_}" y="8" width="{w}" height="32" rx="6" fill="{BLUE}"/>')
+        s.add(f'<g transform="translate({cx_ + 16} 24)">{TOOL_ICONS[tname]}</g>')
+        if has_chev:
+            s.add(chev(cx_ + 34, 24.5, "#fff", 2.4))
+    s.add(f'<line x1="{sep_x + .5}" y1="14" x2="{sep_x + .5}" y2="34" stroke="{FG_BORDER}"/>')
+    s.add(f'<g transform="translate({act_x + 16} 24)"><path d="M0 -7 C.6 -2.4 2.4 -.6 7 0 C2.4 .6 .6 2.4 0 7 C-.6 2.4 -2.4 .6 -7 0 C-2.4 -.6 -.6 -2.4 0 -7Z" stroke="#fff" stroke-width="1.15" stroke-linejoin="round"/></g>')
+    s.add(f'<g transform="translate({dev_x + 22} 24)"><rect x="-17" y="-10" width="34" height="20" rx="10" fill="{FG_FIELD}"/>'
+          f'<circle cx="-7" cy="0" r="8" fill="#5A5A5A"/><path d="M-9.5 -2.2 L-11.6 0 L-9.5 2.2 M-4.5 -2.2 L-2.4 0 L-4.5 2.2 M-6.2 -3 L-7.8 3" '
+          f'stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>')
+    s.add("</g>")
 
-    # floating toolbar
-    tools = ["move", "frame", "pen", "text", "comment"]
-    tb_w = len(tools) * 32 + 8
-    tb_x, tb_y = (LP + RP) / 2 - tb_w / 2, H - 52
-    s.add(f'<rect x="{f(tb_x)}" y="{tb_y}" width="{tb_w}" height="38" rx="11" fill="#151518" stroke="{LINE_2}" filter="url(#sh)"/>')
-    active = [(0, 0), (.35, 1), (1.85, 3), (T_SUB, 0)]
-    fr = []
-    for t, idx in active:
-        fr.append((t, f"transform:translateX({idx * 32}px)", "steps(1,end)" if t else "steps(1,end)"))
-    fr.append((T_SUB + .01, "transform:translateX(0)", None))
-    hl = s.anim(fr)
-    s.add(f'<g transform="translate({f(tb_x + 5)} {tb_y + 5})"><rect class="{hl}" width="30" height="28" rx="7" fill="{BLUE}"/></g>')
-    icons = {
-        "move": '<path d="M-4 -6 L-4 5 L-1 2.2 L1.2 7 L3 6.2 L.9 1.6 L4.8 1.6 Z" fill="#fff" stroke="#fff" stroke-width=".6" stroke-linejoin="round"/>',
-        "frame": '<path d="M-3 -7 V7 M3 -7 V7 M-7 -3 H7 M-7 3 H7" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>',
-        "pen": '<path d="M-6 5 C-4 -5 4 -5 6 5" stroke="#fff" stroke-width="1.4"/><rect x="-7.5" y="3.5" width="3" height="3" fill="#151518" stroke="#fff"/><rect x="4.5" y="3.5" width="3" height="3" fill="#151518" stroke="#fff"/>',
-        "text": '<path d="M-5 -6 H5 M0 -6 V6.5" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/>',
-        "comment": '<path d="M-6 -5.5 H6 Q7 -5.5 7 -4.5 V3 Q7 4 6 4 H-1 L-5 7 V4 H-6 Q-7 4 -7 3 V-4.5 Q-7 -5.5 -6 -5.5Z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>',
-    }
-    for i, tname in enumerate(tools):
-        s.add(f'<g transform="translate({f(tb_x + 5 + i * 32 + 15)} {tb_y + 19})" opacity=".92">{icons[tname]}</g>')
-
-    # ---- cursors (clipped to the canvas) -----------------------------------
-    s.add('<g clip-path="url(#cv)">')
-
-    def path_anim(points, float_delay, amp):
-        frames = [(t, f"transform:translate({f(x)}px,{f(y)}px)", e) for t, (x, y), e in points]
-        outer = s.anim(frames)
+    # ---- Claude's cursor (lives on the canvas) ------------------------------------
+    def cursor_path(points, float_delay, amp):
+        outer = s.anim([(t, f"transform:translate({f(x)}px,{f(y)}px)", e) for t, (x, y), e in points])
         fl = s.anim([(0, "transform:translate(0,0)", "ease-in-out"), (2.6, f"transform:translate({amp[0]}px,{amp[1]}px)", "ease-in-out"),
                      (5.2, "transform:translate(0,0)", None)], iterations="infinite", delay=float_delay)
-        last = points[-1][1]
-        return outer, fl, last
+        return outer, fl, points[-1][1]
 
-    rishi_pts = [
-        (0, (512, 330), None), (.35, (512, 330), EASE), (T_DRAG0, (fx, fy), EASE),
-        (T_DRAG1, (fx + fw, fy + fh), None), (1.85, (fx + fw, fy + fh), EASE),
-        (2.25, (nx - 2, ny - 30), None), (2.4, (nx - 2, ny - 30), EASE), (3.0, (fx + 282, fy + 48), None),
-        (5.45, (fx + 282, fy + 48), EASE), (5.95, (tx0 + 2, ty + 2), None), (T_PLAY + .15, (tx0 + 2, ty + 2), EASE),
-        (T_IDLE + .6, (fx + fw - 52, fy + fh + 34), None),
-    ]
-    o, fl, (lx, ly) = path_anim(rishi_pts, T_IDLE + .6, (-5, 3))
-    s.add(f'<g class="{o}" style="transform:translate({lx}px,{ly}px)"><g class="{fl}">{cursor(RISHI, "Rishi", s)}</g></g>')
-
-    claude_pts = [(0, (620, 300), None), (T_CL_IN, (620, 300), EASE), (T_CL_DRAW0, pts[0], None)]
-    for k, pnt in enumerate(pts[1:], 1):
-        claude_pts.append((T_CL_DRAW0 + (T_CL_DRAW1 - T_CL_DRAW0) * k / (len(pts) - 1), pnt, None))
-    claude_pts += [(T_CL_DRAW1 + .2, pts[-1], EASE), (T_IDLE + .3, (fx - 22, fy + fh + 30), None)]
-    o, fl, (lx, ly) = path_anim(claude_pts, T_IDLE + .3, (4, -4))
-    s.add(f'<g class="{o}" style="transform:translate({f(lx)}px,{f(ly)}px)"><g class="{fl}">')
-    # name tag swaps to a cursor-chat bubble for a moment
-    chat = "feels right"
-    tag = s.anim([(0, "opacity:1", None), (T_CL_DRAW1 + .15, "opacity:1", None), (T_CL_DRAW1 + .3, "opacity:0", None),
-                  (T_IDLE + 1.6, "opacity:0", None), (T_IDLE + 1.8, "opacity:1", None)])
-    bub = s.anim([(0, "opacity:0;transform:scale(.6)", None), (T_CL_DRAW1 + .15, "opacity:0;transform:scale(.6)", OUT_EXPO),
-                  (T_CL_DRAW1 + .5, "opacity:1;transform:scale(1)", None), (T_IDLE + 1.6, "opacity:1;transform:scale(1)", None),
-                  (T_IDLE + 1.8, "opacity:0;transform:scale(.9)", None)])
-    cw = FONTS["sans"].width(chat, 12) + 22
+    cl_pts = [(0, (CX1 + 30, 330), None), (T_CL_IN, (CX1 + 30, 330), EASE),
+              (T_ABOUT, (nx + about_w + 4, ay0 + 16 * (len(about) - 1) + 2), None),
+              (T_STACK, (nx + about_w + 4, ay0 + 16 * (len(about) - 1) + 2), EASE)]
+    for (cx_, cy_, cw, _), t in zip(chips, chip_times):
+        cl_pts.append((t, (cx_ + cw - 4, cy_ + 16), EASE))
+    cl_pts += [(T_TOOLS, (nx + FONTS["body"].width(tools_line, 10), tools_y + 2), None),
+               (T_TOOLS + .25, (nx + FONTS["body"].width(tools_line, 10), tools_y + 2), EASE),
+               (T_SEL2 - .1, (fx - 14, fy + fh + 42), None)]
+    o, fl, (lx, ly) = cursor_path(cl_pts, T_IDLE, (4, -3))
+    s.add(f'<g clip-path="url(#cv)"><g class="{o}" style="transform:translate({f(lx)}px,{f(ly)}px)"><g class="{fl}">')
     s.add(f'<path d="M0 0 L0 15.5 L4.3 11.6 L7.2 18.2 L9.9 17 L7.1 10.6 L12.8 10.6 Z" fill="{CLAUDE}" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>')
-    s.add(f'<g class="{tag}"><rect x="10" y="17" width="{f(FONTS["sans-md"].width("Claude", 11) + 14)}" height="19" rx="6" fill="{CLAUDE}"/>'
-          + s.text(17, 30.5, "Claude", "sans-md", 11, "#fff") + "</g>")
-    s.add(f'<g transform="translate(10 17)"><g class="{bub}" style="opacity:0"><rect width="{f(cw)}" height="26" rx="13" fill="{CLAUDE}"/>'
-          + s.text(11, 17.5, chat, "sans", 12, "#fff") + "</g></g>")
-    s.add("</g></g>")
-    s.add("</g>")  # /clip canvas
+    chat = "added your stack"
+    tag = s.anim([(0, "opacity:1", None), (T_TOOLS + .3, "opacity:1", None), (T_TOOLS + .45, "opacity:0", None),
+                  (T_IDLE + 1.4, "opacity:0", None), (T_IDLE + 1.6, "opacity:1", None)])
+    bub = s.anim([(0, "opacity:0;transform:scale(.6)", None), (T_TOOLS + .3, "opacity:0;transform:scale(.6)", OUT_EXPO),
+                  (T_TOOLS + .65, "opacity:1;transform:scale(1)", None), (T_IDLE + 1.4, "opacity:1;transform:scale(1)", None),
+                  (T_IDLE + 1.6, "opacity:0;transform:scale(.9)", None)])
+    s.add(f'<g class="{tag}"><rect x="10" y="17" width="{f(FONTS["ui-md"].width("Claude", 11) + 12)}" height="18" rx="4" fill="{CLAUDE}"/>'
+          + s.text(16, 29.5, "Claude", "ui-md", 11, "#fff") + "</g>")
+    cw_ = FONTS["ui"].width(chat, 12) + 22
+    s.add(f'<g transform="translate(10 17)"><g class="{bub}" style="opacity:0"><rect width="{f(cw_)}" height="26" rx="13" fill="{CLAUDE}"/>'
+          + s.text(11, 17.5, chat, "ui", 12, "#fff") + "</g></g>")
+    s.add("</g></g></g>")
 
-    # ---- title bar -----------------------------------------------------------
-    s.add(f'<rect width="{W}" height="{TB}" fill="{PANEL}"/><line x1="0" y1="{TB - .5}" x2="{W}" y2="{TB - .5}" stroke="{LINE}"/>')
-    for i in range(3):
-        s.add(f'<circle cx="{18 + i * 16}" cy="20" r="5" fill="#2A2A2F"/>')
-    a, b = "rishiashar", " / Profile"
-    wa, wb = FONTS["sans-md"].width(a, 12), FONTS["sans"].width(b, 12)
-    x0 = W / 2 - (wa + wb) / 2
-    s.add(s.text(x0, 24.5, a, "sans-md", 12, TEXT) + s.text(x0 + wa, 24.5, b, "sans", 12, TEXT_3))
-    s.add(f'<rect x="{W - 66}" y="9" width="54" height="22" rx="6" fill="{BLUE}"/>' + s.text(W - 39, 24, "Share", "sans-md", 11.5, "#fff", "middle"))
+    # ---- desktop tab bar -------------------------------------------------------------
+    s.add(f'<rect width="{W}" height="{TB}" fill="{FG_TABBAR}"/>')
+    for i, col in enumerate(("#FF5F57", "#FEBC2E", "#28C840")):
+        s.add(f'<circle cx="{18 + i * 18}" cy="18" r="5.5" fill="{col}"/>')
+    s.add(f'<path d="M80 19.5 L86 14 L92 19.5 V24 H80Z" stroke="{FG_T2}" stroke-width="1.1" stroke-linejoin="round"/>')
+    tab_x, tab_w = 104, 188
+    s.add(f'<path d="M{tab_x} {TB} V{12} Q{tab_x} 6 {tab_x + 6} 6 H{tab_x + tab_w - 6} Q{tab_x + tab_w} 6 {tab_x + tab_w} 12 V{TB}Z" fill="{FG_PANEL}"/>')
+    s.add(figma_logo(tab_x + 12, 15, .5, FG_T2) + s.text(tab_x + 26, 24, "rishiashar.com", "ui-md", 11, FG_T1))
+    s.add(f'<path d="M{tab_x + tab_w - 18} 17.5 l5 5 m0 -5 l-5 5" stroke="{FG_T2}" stroke-width="1.1" stroke-linecap="round"/>')
+    s.add(plus(tab_x + tab_w + 18, 21, FG_T2))
+
+    # ---- left panel ---------------------------------------------------------------------
+    s.add(f'<rect x="0" y="{TB}" width="{LP}" height="{H - TB}" fill="{FG_PANEL}"/>'
+          f'<line x1="{LP + .5}" y1="{TB}" x2="{LP + .5}" y2="{H}" stroke="{FG_BORDER}" stroke-width=".8"/>')
+    s.add(figma_logo(16, 50, .78) + chev(36, 57, FG_T2, 2.6))
+    s.add(f'<rect x="{LP - 30}" y="49" width="14" height="14" rx="2.5" stroke="{FG_T2}" stroke-width="1.1"/>'
+          f'<line x1="{LP - 25.5}" y1="49" x2="{LP - 25.5}" y2="63" stroke="{FG_T2}" stroke-width="1.1"/>')
+    fname = "rishiashar.com"
+    s.add(s.text(16, 92, fname, "ui-sb", 12, FG_T1) + chev(16 + FONTS["ui-sb"].width(fname, 12) + 9, 88, FG_T2, 2.8))
+    s.add(s.text(16, 108, "Drafts", "ui", 11, FG_T3))
+    s.add(f'<line x1="0" y1="122.5" x2="{LP}" y2="122.5" stroke="{FG_DIV}"/>')
+    s.add(f'<rect x="10" y="129" width="{FONTS["ui-sb"].width("File", 11) + 16}" height="24" rx="5" fill="{FG_FIELD}"/>')
+    s.add(s.text(18, 145, "File", "ui-sb", 11, FG_T1) + s.text(18 + FONTS["ui-sb"].width("File", 11) + 22, 145, "Assets", "ui-md", 11, FG_T3))
+    s.add(f'<circle cx="{LP - 24}" cy="140" r="4.5" stroke="{FG_T2}" stroke-width="1.1"/><line x1="{LP - 20.5}" y1="143.5" x2="{LP - 17}" y2="147" stroke="{FG_T2}" stroke-width="1.1" stroke-linecap="round"/>')
+    s.add(s.text(16, 178, "Pages", "ui-sb", 11, FG_T1) + plus(LP - 22, 174))
+    for i, pg in enumerate(["Profile", "Work", "Play"]):
+        y = 188 + i * 26
+        if i == 0:
+            s.add(f'<path d="M15 {y + 13} l2.6 2.6 l4.6 -5.2" stroke="{FG_T1}" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>')
+        s.add(s.text(30, y + 17, pg, "ui-md" if i == 0 else "ui", 11, FG_T1 if i == 0 else FG_T2))
+    s.add(f'<line x1="0" y1="274.5" x2="{LP}" y2="274.5" stroke="{FG_DIV}"/>')
+    s.add(s.text(16, 298, "Layers", "ui-sb", 11, FG_T1))
+
+    # layers: newest child on top, like Figma
+    ROW, ly0 = 28, 308
+    kids = [("text", "Rishi Ashar", T_TEXT), ("text", "About", T_ABOUT), ("auto", "Stack", T_STACK), ("text", "Tools", T_TOOLS)]
+    sel_row = s.anim(vis_frames([(T_DRAG0 + .05, T_TEXT), (T_SEL2, None)], .01))
+    s.add(f'<rect class="{sel_row}" x="8" y="{ly0}" width="{LP - 16}" height="{ROW - 2}" rx="5" fill="{FG_ROW_SEL}"/>')
+    ap = s.anim([(0, "opacity:0", None), (T_DRAG0 + .05, "opacity:0", None), (T_DRAG0 + .25, "opacity:1", None)])
+    s.add(f'<g class="{ap}">{chev(16, ly0 + 13, FG_T2, 2.4)}<g transform="translate(29 {ly0 + 13})">{LAYER_ICONS["frame"].format(c=FG_T1)}</g>'
+          + s.text(42, ly0 + 17, "Profile", "ui-md", 11, FG_T1) + "</g>")
+    sel_kid = s.anim(vis_frames([(T_TEXT, T_ESC)], .01))
+    s.add(f'<rect class="{sel_kid}" style="opacity:0" x="8" y="{ly0 + ROW}" width="{LP - 16}" height="{ROW - 2}" rx="5" fill="{FG_ROW_SEL}"/>')
+    for i, (kind, label, t0) in enumerate(kids):
+        later = [t for _, _, t in kids[i + 1:]]
+        fr = [(0, f"opacity:0;transform:translate(-6px,{ly0 + ROW}px)", None), (t0, f"opacity:0;transform:translate(-6px,{ly0 + ROW}px)", OUT_EXPO),
+              (t0 + .35, f"opacity:1;transform:translate(0,{ly0 + ROW}px)", None)]
+        for k, t in enumerate(later, 2):
+            fr += [(t, f"opacity:1;transform:translate(0,{ly0 + ROW * (k - 1)}px)", OUT_EXPO),
+                   (t + .3, f"opacity:1;transform:translate(0,{ly0 + ROW * k}px)", None)]
+        final_y = ly0 + ROW * (len(kids) - i)
+        a = s.anim(fr)
+        s.add(f'<g class="{a}" style="transform:translate(0,{final_y}px)"><g transform="translate(43 13)">{LAYER_ICONS[kind].format(c=FG_T2)}</g>'
+              + s.text(56, 17, label, "ui", 11, FG_T2) + "</g>")
+
+    # ---- right panel ------------------------------------------------------------------------
+    s.add(f'<rect x="{RP}" y="{TB}" width="{W - RP}" height="{H - TB}" fill="{FG_PANEL}"/>'
+          f'<line x1="{RP - .5}" y1="{TB}" x2="{RP - .5}" y2="{H}" stroke="{FG_BORDER}" stroke-width=".8"/>')
+    px0, px1 = RP + 12, W - 12
+    # header: avatars, present, share
     av = s.anim([(0, "opacity:0;transform:scale(.4)", None), (T_CL_IN, "opacity:0;transform:scale(.4)", OUT_EXPO),
                  (T_CL_IN + .5, "opacity:1;transform:scale(1)", None)])
-    s.add(f'<g transform="translate({W - 104} 20)"><g class="{av}"><circle r="11" fill="{CLAUDE}" stroke="{PANEL}" stroke-width="2"/>'
-          f'{claude_mark(0, 0, 6.5)}</g></g>')
-    s.add(f'<g transform="translate({W - 86} 20)"><circle r="11" fill="{RISHI}" stroke="{PANEL}" stroke-width="2"/>'
-          + s.text(0, 4, "R", "sans-sb", 11, "#fff", "middle") + "</g>")
-    s.add(s.text(W - 124, 24, "100%", "mono", 10.5, TEXT_3, "end"))
+    s.add(f'<g transform="translate({px0 + 30} 60)"><g class="{av}"><circle r="12" fill="{CLAUDE}" stroke="{FG_PANEL}" stroke-width="2"/>{claude_mark(0, 0, 7)}</g></g>')
+    s.add(f'<g transform="translate({px0 + 12} 60)"><circle r="12" fill="{RISHI}" stroke="{FG_PANEL}" stroke-width="2"/>'
+          + s.text(0, 4, "R", "ui-sb", 11, "#fff", "middle") + "</g>")
+    s.add(f'<path d="M{px1 - 92} 54 L{px1 - 83} 60 L{px1 - 92} 66Z" stroke="{FG_T1}" stroke-width="1.15" stroke-linejoin="round"/>' + chev(px1 - 74, 60.5, FG_T2, 2.4))
+    s.add(f'<rect x="{px1 - 58}" y="47" width="58" height="26" rx="6" fill="{BLUE}"/>' + s.text(px1 - 29, 64, "Share", "ui-md", 11, "#fff", "middle"))
+    # tabs + zoom
+    tabs_y = 104
+    wd = FONTS["ui-sb"].width("Design", 11)
+    wp = FONTS["ui-sb"].width("Prototype", 11)
+    t_design = s.anim(vis_frames([(0, T_PROTO)], .08))
+    t_proto = s.anim(vis_frames([(T_PROTO, None)], .08))
+    s.add(f'<rect class="{t_design}" style="opacity:0" x="{px0 - 2}" y="{tabs_y - 16}" width="{f(wd + 16)}" height="24" rx="5" fill="{FG_FIELD}"/>')
+    s.add(f'<rect class="{t_proto}" x="{f(px0 + wd + 18)}" y="{tabs_y - 16}" width="{f(wp + 16)}" height="24" rx="5" fill="{FG_FIELD}"/>')
+    s.add(s.text(px0 + 6, tabs_y, "Design", "ui-sb", 11, FG_T3) + f'<g class="{t_design}" style="opacity:0">' + s.text(px0 + 6, tabs_y, "Design", "ui-sb", 11, FG_T1) + "</g>")
+    s.add(s.text(px0 + wd + 26, tabs_y, "Prototype", "ui-sb", 11, FG_T3) + f'<g class="{t_proto}">' + s.text(px0 + wd + 26, tabs_y, "Prototype", "ui-sb", 11, FG_T1) + "</g>")
+    s.add(s.text(px1 - 12, tabs_y, "100%", "ui", 11, FG_T2, "end") + chev(px1 - 3, tabs_y - 3.5, FG_T2, 2.4))
+    s.add(f'<line x1="{RP}" y1="120.5" x2="{W}" y2="120.5" stroke="{FG_DIV}"/>')
 
-    # ---- left panel ----------------------------------------------------------
-    s.add(f'<rect x="0" y="{TB}" width="{LP}" height="{H - TB}" fill="{PANEL}"/><line x1="{LP + .5}" y1="{TB}" x2="{LP + .5}" y2="{H}" stroke="{LINE}"/>')
-    s.add(s.text(16, 66, "Pages", "sans-sb", 11.5, TEXT))
-    for i, pg in enumerate(["Profile", "Work", "Play"]):
-        y = 78 + i * 24
-        if i == 0:
-            s.add(f'<rect x="8" y="{y}" width="{LP - 16}" height="22" rx="5" fill="#1B1B1F"/>')
-        s.add(s.text(28, y + 15, pg, "sans", 11.5, TEXT if i == 0 else TEXT_2))
-        if i == 0:
-            s.add(f'<path d="M14 {y + 11} l2.5 2.5 l4.5 -5" stroke="{TEXT}" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>')
-    s.add(f'<line x1="0" y1="160.5" x2="{LP}" y2="160.5" stroke="{LINE}"/>')
-    s.add(s.text(16, 184, "Layers", "sans-sb", 11.5, TEXT))
-    layer_icon = {
-        "frame": '<path d="M-2.5 -5 V5 M2.5 -5 V5 M-5 -2.5 H5 M-5 2.5 H5" stroke="{c}" stroke-width="1.1" stroke-linecap="round"/>',
-        "text": '<path d="M-4 -4.5 H4 M0 -4.5 V5" stroke="{c}" stroke-width="1.2" stroke-linecap="round"/>',
-        "vector": '<path d="M-4.5 4 C-3 -4 3 -4 4.5 4" stroke="{c}" stroke-width="1.1"/><circle cx="-4.5" cy="4" r="1.3" fill="{c}"/><circle cx="4.5" cy="4" r="1.3" fill="{c}"/>',
-        "sound": '<path d="M-4.5 0 V0 M-1.5 -3 V3 M1.5 -4.5 V4.5 M4.5 -2 V2" stroke="{c}" stroke-width="1.3" stroke-linecap="round"/>',
-    }
-    layers = [("frame", "Hero", 0, .95), ("text", "Rishi Ashar", 1, T_TEXT), ("text", "Experience designer", 1, T_SUB),
-              ("vector", "motion/out-expo", 1, T_CL_DRAW0), ("sound", "ui/tick", 1, T_PLAY - .2)]
-    ly0 = 196
-    sel_rows = [(0, 0, .95), (1, T_TEXT, None), (2, T_SUB, None), (4, T_PLAY - .2, None)]
-    fr = [(0, f"opacity:0;transform:translateY({ly0}px)", "steps(1,end)"), (.95, f"opacity:1;transform:translateY({ly0}px)", "steps(1,end)")]
-    for row, t, _ in sel_rows[1:]:
-        fr.append((t, f"opacity:1;transform:translateY({ly0 + row * 25}px)", "steps(1,end)"))
-    fr.append((T_IDLE, f"opacity:0;transform:translateY({ly0 + 4 * 25}px)", None))
-    hl = s.anim(fr)
-    s.add(f'<rect class="{hl}" style="opacity:0" x="8" y="0" width="{LP - 16}" height="23" rx="5" fill="{BLUE}" fill-opacity=".16"/>')
-    for i, (kind, label, indent, t) in enumerate(layers):
-        y = ly0 + i * 25
-        ap = s.anim([(0, "opacity:0;transform:translateX(-6px)", None), (t, "opacity:0;transform:translateX(-6px)", OUT_EXPO),
-                     (t + .4, "opacity:1;transform:translateX(0)", None)])
-        ix = 20 + indent * 14
-        s.add(f'<g class="{ap}"><g transform="translate({ix} {y + 11.5})">{layer_icon[kind].format(c=TEXT_2)}</g>'
-              + s.text(ix + 12, y + 15.5, label, "sans", 11.5, TEXT if i == 0 else TEXT_2) + "</g>")
-    s.add(s.text(16, H - 18, "43.65°N 79.38°W", "mono", 10, TEXT_3))
+    def field(x, y, w, h=26):
+        return f'<rect x="{f(x)}" y="{f(y)}" width="{f(w)}" height="{h}" rx="5" fill="{FG_FIELD}"/>'
 
-    # ---- right panel (inspector) ---------------------------------------------
-    s.add(f'<rect x="{RP}" y="{TB}" width="{W - RP}" height="{H - TB}" fill="{PANEL}"/><line x1="{RP - .5}" y1="{TB}" x2="{RP - .5}" y2="{H}" stroke="{LINE}"/>')
-    ix = RP + 18
-    s.add(s.text(ix, 66, "Design", "sans-sb", 11.5, TEXT))
-    s.add(s.text(ix + FONTS["sans-sb"].width("Design", 11.5) + 16, 66, "Prototype", "sans-md", 11.5, TEXT_3))
-    s.add(f'<line x1="{RP}" y1="80.5" x2="{W}" y2="80.5" stroke="{LINE}"/>')
-    sections = [
-        ("About", "sans", 12, ["Experience designer in Toronto,", "designing and prototyping ideas", "with AI and emerging tools."]),
-        ("Stack", "mono", 11, ["TypeScript · React · Next.js", "Framer Motion · WebGL · Web Audio"]),
-        ("Tools", "mono", 11, ["Figma · Cursor · Claude Code", "Framer · Codex · Lovable"]),
-        ("Elsewhere", "mono", 11, ["rishiashar.com", "x.com/that_rishi07"]),
+    def kv(x, y, w, k, v, kfont="ui"):
+        return field(x, y, w) + s.text(x + 9, y + 17, k, kfont, 11, FG_T3) + s.text(x + 24, y + 17, v, "ui", 11, FG_T1)
+
+    def head(y, label, icon=None):
+        return s.text(px0 + 4, y, label, "ui-sb", 11, FG_T1) + (icon or "")
+
+    def div(y):
+        return f'<line x1="{RP}" y1="{y + .5}" x2="{W}" y2="{y + .5}" stroke="{FG_DIV}"/>'
+
+    def swatch_row(y, hexv, color):
+        return (field(px0, y, 158) + f'<rect x="{px0 + 7}" y="{y + 6}" width="14" height="14" rx="3" fill="{color}" stroke="#555"/>'
+                + s.text(px0 + 29, y + 17, hexv, "ui", 11, FG_T1) + s.text(px0 + 150, y + 17, "100%", "ui", 11, FG_T1, "end")
+                + eye(px1 - 34, y + 13) + f'<path d="M{px1 - 13} {y + 13} H{px1 - 5}" stroke="{FG_T2}" stroke-width="1.1" stroke-linecap="round"/>')
+
+    hw = (px1 - px0 - 8) / 2
+    groups = {}
+    # nothing selected
+    g = [head(146, "Page"), swatch_row(156, "1E1E1E", FG_CANVAS), div(194),
+         head(218, "Variables", f'<path d="M{px1 - 17} 211 H{px1 - 3} M{px1 - 17} 219 H{px1 - 3}" stroke="{FG_T2}" stroke-width="1.1" stroke-linecap="round"/>'
+              f'<circle cx="{px1 - 13}" cy="211" r="2.2" fill="{FG_PANEL}" stroke="{FG_T2}" stroke-width="1.1"/>'
+              f'<circle cx="{px1 - 7}" cy="219" r="2.2" fill="{FG_PANEL}" stroke="{FG_T2}" stroke-width="1.1"/>'), div(234),
+         head(258, "Styles", plus(px1 - 10, 254)), div(274), head(298, "Export", plus(px1 - 10, 294))]
+    groups["page"] = ("".join(g), [(0, T_DRAG0), (T_ESC, T_SEL2)])
+    # frame selected
+    align = "".join(f'<path d="{d}" stroke="{FG_T2}" stroke-width="1.1" stroke-linecap="round"/>' for d in (
+        f"M{px0 + 12} 189 V201 M{px0 + 15} 192 H{px0 + 22} M{px0 + 15} 198 H{px0 + 20}",
+        f"M{px0 + 40} 189 V201 M{px0 + 36} 192 H{px0 + 44} M{px0 + 37} 198 H{px0 + 43}",
+        f"M{px0 + 66} 189 V201 M{px0 + 56} 192 H{px0 + 63} M{px0 + 58} 198 H{px0 + 63}",
+        f"M{px0 + 82} 188 H{px0 + 94} M{px0 + 85} 191 V198 M{px0 + 91} 191 V196",
+        f"M{px0 + 104} 194 H{px0 + 116} M{px0 + 107} 190 V198 M{px0 + 113} 191 V197",
+        f"M{px0 + 126} 200 H{px0 + 138} M{px0 + 129} 190 V197 M{px0 + 135} 192 V197"))
+    g = [head(146, "Frame") + chev(px0 + 4 + FONTS["ui-sb"].width("Frame", 11) + 9, 142.5, FG_T2, 2.6),
+         head(176, "Position"), field(px0, 182, px1 - px0), align,
+         kv(px0, 214, hw, "X", str(fx)), kv(px0 + hw + 8, 214, hw, "Y", str(fy)), div(252),
+         head(276, "Layout"), kv(px0, 286, hw, "W", str(fw)), kv(px0 + hw + 8, 286, hw, "H", str(fh)), div(324),
+         head(348, "Appearance"),
+         field(px0, 358, hw), f'<rect x="{px0 + 8}" y="365" width="11" height="11" rx="2" stroke="{FG_T3}" stroke-width="1.1" stroke-dasharray="2 1.5"/>',
+         s.text(px0 + 26, 375, "100%", "ui", 11, FG_T1),
+         field(px0 + hw + 8, 358, hw),
+         f'<path d="M{f(px0 + hw + 17)} 377 V370 Q{f(px0 + hw + 17)} 365 {f(px0 + hw + 22)} 365 H{f(px0 + hw + 28)}" stroke="{FG_T3}" stroke-width="1.1" stroke-linecap="round"/>',
+         s.text(px0 + hw + 34, 375, "0", "ui", 11, FG_T1),
+         div(396), head(420, "Fill", plus(px1 - 10, 416)), swatch_row(430, "F5F5F5", SITE_BG)]
+    groups["frame"] = ("".join(g), [(T_DRAG0, T_TEXT), (T_SEL2, T_PROTO)])
+    # text selected
+    g = [head(146, "Text"), head(176, "Position"), kv(px0, 186, hw, "X", "22"), kv(px0 + hw + 8, 186, hw, "Y", "26"), div(224),
+         head(248, "Typography"), field(px0, 258, px1 - px0), s.text(px0 + 9, 275, "Fraunces", "ui", 11, FG_T1), chev(px1 - 12, 271, FG_T2, 2.6),
+         field(px0, 290, hw + 30), s.text(px0 + 9, 307, "Regular", "ui", 11, FG_T1), chev(px0 + hw + 20, 303, FG_T2, 2.6),
+         field(px0 + hw + 38, 290, hw - 30), s.text(px0 + hw + 47, 307, str(nsize), "ui", 11, FG_T1), chev(px1 - 12, 303, FG_T2, 2.6),
+         field(px0, 322, hw), f'<path d="M{px0 + 8} 329 H{px0 + 18} M{px0 + 8} 341 H{px0 + 18} M{px0 + 13} 332 V338" stroke="{FG_T3}" stroke-width="1.1" stroke-linecap="round"/>',
+         s.text(px0 + 24, 339, "Auto", "ui", 11, FG_T1),
+         field(px0 + hw + 8, 322, hw), s.text(px0 + hw + 17, 339, "|A|", "ui", 10, FG_T3), s.text(px0 + hw + 36, 339, "-2%", "ui", 11, FG_T1),
+         div(362), head(386, "Fill", plus(px1 - 10, 382)), swatch_row(396, "111111", SITE_INK)]
+    groups["text"] = ("".join(g), [(T_TEXT, T_ESC)])
+    # prototype tab: interaction + custom bezier editor
+    ex0, ey0, ew, eh = px0, 298, px1 - px0, 104
+    q0 = (ex0 + 18, ey0 + eh - 16)
+    q3 = (ex0 + ew - 18, ey0 + 16)
+    ddx, ddy = q3[0] - q0[0], q3[1] - q0[1]
+
+    def bz(x1, y1):
+        return (q0[0] + x1 * ddx, q0[1] + y1 * ddy)
+    p1a, p1b, p2 = bz(.42, 0), bz(.16, 1), bz(.3, 1)
+    da = f"M{f(q0[0])} {f(q0[1])} C{f(p1a[0])} {f(p1a[1])} {f(p2[0])} {f(p2[1])} {f(q3[0])} {f(q3[1])}"
+    db = f"M{f(q0[0])} {f(q0[1])} C{f(p1b[0])} {f(p1b[1])} {f(p2[0])} {f(p2[1])} {f(q3[0])} {f(q3[1])}"
+    k0, k1 = f(T_DRAG_B0 / T_DRAG_B1), "1"
+
+    def mv(attr, a, b):
+        return (f'<animate attributeName="{attr}" values="{a};{a};{b}" keyTimes="0;{k0};{k1}" dur="{T_DRAG_B1}s" '
+                f'calcMode="spline" keySplines="0 0 1 1;.45 0 .2 1" fill="freeze"/>')
+    grid = "".join(f'<line x1="{f(ex0 + ew * k / 4)}" y1="{ey0}" x2="{f(ex0 + ew * k / 4)}" y2="{ey0 + eh}" stroke="#262626"/>' for k in (1, 2, 3))
+    grid += "".join(f'<line x1="{ex0}" y1="{f(ey0 + eh * k / 3)}" x2="{ex0 + ew}" y2="{f(ey0 + eh * k / 3)}" stroke="#262626"/>' for k in (1, 2))
+    vals_a, vals_b = "0.42, 0, 0.3, 1", "0.16, 1, 0.3, 1"
+    va = s.anim(vis_frames([(0, T_DRAG_B1)], .05))
+    vb = s.anim(vis_frames([(T_DRAG_B1, None)], .05))
+    g = [head(146, "Interactions", plus(px1 - 10, 142)),
+         field(px0, 156, px1 - px0, 30),
+         f'<circle cx="{px0 + 14}" cy="171" r="5" stroke="{FG_T2}" stroke-width="1.1"/><circle cx="{px0 + 14}" cy="171" r="1.6" fill="{FG_T2}"/>',
+         s.text(px0 + 26, 175, "On click", "ui", 11, FG_T2),
+         (lambda ax: f'<path d="M{f(ax)} 171 H{f(ax + 10)} M{f(ax + 6.5)} 167.5 L{f(ax + 10)} 171 L{f(ax + 6.5)} 174.5" stroke="{FG_T3}" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>'
+          + s.text(ax + 17, 175, "Work", "ui-md", 11, FG_T1))(px0 + 26 + FONTS["ui"].width("On click", 11) + 8),
+         div(198), head(222, "Animation"),
+         field(px0, 232, px1 - px0), s.text(px0 + 9, 249, "Smart animate", "ui", 11, FG_T1), chev(px1 - 12, 245, FG_T2, 2.6),
+         field(px0, 264, px1 - px0),
+         f'<path d="M{px0 + 8} 283 C{px0 + 11} 273 {px0 + 14} 271 {px0 + 20} 271" stroke="{FG_T2}" stroke-width="1.1" stroke-linecap="round"/>',
+         s.text(px0 + 26, 281, "Custom bezier", "ui", 11, FG_T1), chev(px1 - 12, 277, FG_T2, 2.6)]
+    g += [f'<rect x="{ex0}" y="{ey0}" width="{ew}" height="{eh}" rx="6" fill="{FG_CANVAS}" stroke="{FG_DIV}"/>', grid,
+          f'<path d="M{f(q0[0])} {f(q0[1])} L{f(q3[0])} {f(q3[1])}" stroke="#3A3A3A" stroke-dasharray="2 3"/>',
+          f'<line x1="{f(q3[0])}" y1="{f(q3[1])}" x2="{f(p2[0])}" y2="{f(p2[1])}" stroke="{BLUE}"/>',
+          f'<line x1="{f(q0[0])}" y1="{f(q0[1])}" x2="{f(p1b[0])}" y2="{f(p1b[1])}" stroke="{BLUE}">{mv("x2", f(p1a[0]), f(p1b[0]))}{mv("y2", f(p1a[1]), f(p1b[1]))}</line>',
+          f'<path d="{db}" stroke="#fff" stroke-width="2" stroke-linecap="round">'
+          f'<animate attributeName="d" values="{da};{da};{db}" keyTimes="0;{k0};1" dur="{T_DRAG_B1}s" calcMode="spline" keySplines="0 0 1 1;.45 0 .2 1" fill="freeze"/></path>',
+          f'<circle cx="{f(p2[0])}" cy="{f(p2[1])}" r="4" fill="{FG_CANVAS}" stroke="{BLUE}" stroke-width="1.5"/>',
+          f'<circle cx="{f(p1b[0])}" cy="{f(p1b[1])}" r="4" fill="#fff" stroke="{BLUE}" stroke-width="1.5">{mv("cx", f(p1a[0]), f(p1b[0]))}{mv("cy", f(p1a[1]), f(p1b[1]))}</circle>',
+          f'<circle cx="{f(q0[0])}" cy="{f(q0[1])}" r="2.5" fill="#fff"/><circle cx="{f(q3[0])}" cy="{f(q3[1])}" r="2.5" fill="#fff"/>']
+    fy2 = ey0 + eh + 8
+    g += [field(px0, fy2, 150), f'<g class="{va}" style="opacity:0">' + s.text(px0 + 9, fy2 + 17, vals_a, "ui", 11, FG_T1) + "</g>",
+          f'<g class="{vb}">' + s.text(px0 + 9, fy2 + 17, vals_b, "ui", 11, FG_T1) + "</g>",
+          field(px0 + 158, fy2, px1 - px0 - 158), s.text(px0 + 167, fy2 + 17, "600ms", "ui", 11, FG_T1)]
+    # live preview of the easing
+    tr_y = fy2 + 46
+    tr0, tr1 = px0 + 10, px1 - 10
+    g.append(f'<line x1="{tr0}" y1="{tr_y}" x2="{tr1}" y2="{tr_y}" stroke="{FG_FIELD}" stroke-width="2" stroke-linecap="round"/>')
+    groups["proto"] = ("".join(g), [(T_PROTO, None)])
+
+    for key, (body, wins) in groups.items():
+        c = s.anim(vis_frames(wins, .1))
+        base = "" if key == "proto" else ' style="opacity:0"'
+        s.add(f'<g class="{c}"{base}>{body}</g>')
+    # the preview dot (separate so it can loop)
+    P, L = 2.4, tr1 - tr0
+    loop = [(0, "transform:translateX(0)", OUT_EXPO), (P * .25, f"transform:translateX({L}px)", None),
+            (P * .5, f"transform:translateX({L}px)", OUT_EXPO), (P * .75, "transform:translateX(0)", None), (P, "transform:translateX(0)", None)]
+    dot = s.anim(loop, iterations="infinite", delay=T_LOOP)
+    show = s.anim(vis_frames([(T_PROTO, None)], .1))
+    s.add(f'<g class="{show}"><g transform="translate({tr0} {tr_y})"><g class="{dot}"><circle r="9" fill="{BLUE}" opacity=".2"/><circle r="5" fill="#fff"/></g></g></g>')
+
+    # ---- Rishi's cursor (on top of everything) ---------------------------------------------
+    tab_px = px0 + wd + 26 + wp / 2
+    ri_pts = [
+        (0, (fx + fw - 30, fy + 250), None), (T_FRAME_TOOL, (fx + fw - 30, fy + 250), EASE), (T_DRAG0, (fx, fy), EASE),
+        (T_DRAG1, (fx + fw, fy + fh), None), (T_TEXT_TOOL, (fx + fw, fy + fh), EASE), (T_TEXT - .05, (nx + 2, ny - 22), None),
+        (T_TEXT + .1, (nx + 2, ny - 22), EASE), (T_TEXT + .6, (fx + fw - 34, fy + 30), None),
+        (T_SEL2 - .4, (fx + fw - 34, fy + 30), EASE), (T_SEL2, (fx + 22, fy - 10), None), (T_SEL2 + .05, (fx + 22, fy - 10), EASE),
+        (T_PROTO - .02, (tab_px, tabs_y - 6), None), (T_PROTO + .1, (tab_px, tabs_y - 6), EASE),
+        (T_DRAG_B0, p1a, EASE), (T_DRAG_B1, p1b, None), (T_DRAG_B1 + .1, p1b, EASE),
+        (T_IDLE, (p1b[0] + 34, p1b[1] + 44), None),
     ]
-    y = 104
-    max_w = W - ix - 16
-    for i, (head, font, size, lines) in enumerate(sections):
-        ap = s.anim([(0, "opacity:0;transform:translateY(4px)", None), (.15 + i * .12, "opacity:0;transform:translateY(4px)", OUT_EXPO),
-                     (.6 + i * .12, "opacity:1;transform:translateY(0)", None)])
-        s.add(f'<g class="{ap}">' + s.text(ix, y, head, "sans-sb", 11.5, TEXT))
-        for j, line in enumerate(lines):
-            assert FONTS[font].width(line, size) <= max_w, (line, FONTS[font].width(line, size), max_w)
-            s.add(s.text(ix, y + 21 + j * 18, line, font, size, TEXT_2))
-        s.add("</g>")
-        y += 21 + len(lines) * 18 + 8
-        if i < len(sections) - 1:
-            s.add(f'<line x1="{RP}" y1="{y + .5}" x2="{W}" y2="{y + .5}" stroke="{LINE}"/>')
-            y += 24
+    o, fl, (lx, ly) = cursor_path(ri_pts, T_IDLE, (-4, 3))
+    s.add(f'<g class="{o}" style="transform:translate({f(lx)}px,{f(ly)}px)"><g class="{fl}">'
+          f'<path d="M0 0 L0 15.5 L4.3 11.6 L7.2 18.2 L9.9 17 L7.1 10.6 L12.8 10.6 Z" fill="{RISHI}" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>'
+          f'<rect x="10" y="17" width="{f(FONTS["ui-md"].width("Rishi", 11) + 12)}" height="18" rx="4" fill="{RISHI}"/>'
+          + s.text(16, 29.5, "Rishi", "ui-md", 11, "#fff") + "</g></g>")
 
     s.add("</g>")  # /clip window
-    s.add(f'<rect x=".5" y=".5" width="{W - 1}" height="{H - 1}" rx="12" stroke="{LINE_2}"/>')
+    s.add(f'<rect x=".5" y=".5" width="{W - 1}" height="{H - 1}" rx="12" stroke="{FG_BORDER}"/>')
     s.save("hero.svg")
-
-
 
 
 # =================================================================== TILES ===
