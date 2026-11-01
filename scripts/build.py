@@ -302,11 +302,11 @@ def idle_loop(svg: Svg, rng, start, period, moves):
 FIGMA = {   # Figma UI3
     "dark": dict(tabbar="#1F1F1F", panel="#2C2C2C", canvas="#1E1E1E", border="#444444", div="#383838",
                  field="#383838", t1="#FFFFFF", t2="#C4C4C4", t3="#8F8F8F", row="#2D4A6B", icon="#FFFFFF",
-                 editor="#1E1E1E", grid="#2A2A2A", curve="#FFFFFF", instance="#C58AFF", window="#4D4D4D",
+                 editor="#1E1E1E", grid="#2A2A2A", curve="#FFFFFF", track="#454545", instance="#C58AFF", window="#4D4D4D",
                  shadow=".55", canvas_hex="1E1E1E"),
     "light": dict(tabbar="#ECECEC", panel="#FFFFFF", canvas="#E5E5E5", border="#E6E6E6", div="#E6E6E6",
                   field="#F5F5F5", t1="#1E1E1E", t2="#5C5C5C", t3="#8F8F8F", row="#E5F4FF", icon="#1E1E1E",
-                  editor="#F5F5F5", grid="#E9E9E9", curve="#1E1E1E", instance="#8638E5", window="#D4D4D4",
+                  editor="#F5F5F5", grid="#E9E9E9", curve="#1E1E1E", track="#E0E0E0", instance="#8638E5", window="#D4D4D4",
                   shadow=".16", canvas_hex="E5E5E5"),
 }
 SITE_THEME = {  # rishiashar.com
@@ -941,7 +941,7 @@ def hero(mode: str) -> None:
     L = tr1 - tr0
     loop = [(0, "transform:translateX(0)", OUT_EXPO), (.6, f"transform:translateX({f(L)}px)", None),
             (1.6, f"transform:translateX({f(L)}px)", OUT_EXPO), (2.2, "transform:translateX(0)", None), (3.2, "transform:translateX(0)", None)]
-    s.add(f'<g {s.show([(T["proto"], None)])}><line x1="{tr0}" y1="{tr_y}" x2="{tr1}" y2="{tr_y}" stroke="{ui["field"]}" stroke-width="2" stroke-linecap="round"/>'
+    s.add(f'<g {s.show([(T["proto"], None)])}><line x1="{tr0}" y1="{tr_y}" x2="{tr1}" y2="{tr_y}" stroke="{ui["track"]}" stroke-width="2" stroke-linecap="round"/>'
           f'<g transform="translate({tr0} {tr_y})"><g class="{s.anim(loop, iterations="infinite", delay=T["end"])}">'
           f'<circle r="8" fill="{BLUE}" opacity=".18"/><circle r="4.5" fill="{ui["curve"]}"/></g></g></g>')
 
