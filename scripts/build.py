@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Builds assets/hero-light.svg and assets/hero-dark.svg for the profile README.
+Builds the profile README's art: assets/hero-{light,dark}.svg and the Work row,
+assets/work-<project>-{light,dark}.svg.
 
     pip install fonttools brotli pillow
     python3 scripts/build.py
@@ -14,6 +15,8 @@ and the frame shows rishiashar.com in that same theme.
 All motion is CSS keyframes, so it runs inside GitHub's image sandbox and
 collapses to the finished screen under prefers-reduced-motion. Fonts come from
 npm and the hero art from rishiashar.com; both are cached in scripts/.cache.
+Covers that only exist as live renders (ProbeRoom's shader, the Gestura app)
+are frozen in scripts/covers.
 """
 from __future__ import annotations
 
@@ -29,7 +32,7 @@ from xml.sax.saxutils import escape
 from fontTools import subset
 from fontTools.ttLib import TTFont
 from fontTools.varLib import instancer
-from PIL import Image
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets"
@@ -964,6 +967,102 @@ def hero(mode: str) -> None:
     print(f"hero-{mode}.svg  {len(data) / 1024:.0f} KB, story {T['end']:.1f}s")
 
 
+# ===================================================================== WORK ===
+COVER = (1556, 974)        # the site's 8:5 work covers, at 2x
+GITHUB = {                 # Primer colours, so the captions read as part of the page
+    "light": dict(fg="#1F2328", muted="#59636E", line="#1F2328"),
+    "dark": dict(fg="#F0F6FC", muted="#9198A1", line="#F0F6FC"),
+}
+
+
+def wrap(text: str, font: str, size: float, max_w: float) -> list[str]:
+    """One line if it fits; otherwise two balanced lines, so nothing is left stranded."""
+    if FONTS[font].width(text, size) <= max_w:
+        return [text]
+    words = text.split()
+    splits = [(" ".join(words[:i]), " ".join(words[i:])) for i in range(1, len(words))]
+    fits = [sp for sp in splits if max(FONTS[font].width(x, size) for x in sp) <= max_w]
+    assert fits, f"{text!r} needs more than two lines"
+    return list(min(fits, key=lambda sp: abs(FONTS[font].width(sp[0], size) - FONTS[font].width(sp[1], size))))
+
+
+def mesh(rows, size) -> Image.Image:
+    """A soft gradient through a small grid of colours."""
+    tiny = Image.new("RGB", (len(rows[0]), len(rows)))
+    tiny.putdata([tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for row in rows for c in row])
+    return tiny.resize(size, Image.BICUBIC)
+
+
+def laptop_cover(screen: Image.Image, colors) -> Image.Image:
+    """Gestura has no cover on the site, so it gets one in the site's language: a laptop bleeding
+    off the bottom-right of a soft gradient. Geometry measured from ProbeRoom's cover."""
+    W, H = COVER
+    im = mesh(colors, COVER)
+    x0, y0, r, bezel = 69, 78, 52, 23
+    lw = (933 - x0) * 2                          # full laptop width; the notch sits at its centre
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle((x0 - 3, y0 - 3, x0 + lw + 3, H + 200), r + 3, fill=(214, 216, 220))
+    d.rounded_rectangle((x0, y0, x0 + lw, H + 200), r, fill=(10, 10, 11))
+    sw = lw - 2 * bezel
+    shot = screen.convert("RGB").resize((sw, round(screen.height * sw / screen.width)), Image.LANCZOS)
+    mask = Image.new("L", shot.size, 0)
+    ImageDraw.Draw(mask).rounded_rectangle((0, 0, shot.width, shot.height + 100), r - bezel, fill=255)
+    im.paste(shot, (x0 + bezel, y0 + bezel), mask)
+    d.rounded_rectangle((x0 + lw // 2 - 90, y0 + bezel - 12, x0 + lw // 2 + 90, y0 + bezel + 22), 11, fill=(10, 10, 11))
+    return im
+
+
+WORK = [  # slug, name, context, the site's own one-liner, link
+    ("proberoom", "ProbeRoom", "Side project", "Rehearse user interviews out loud with an AI participant.", "https://proberoom.vercel.app"),
+    ("log-analyzer", "Activity Log Analyzer", "Autodesk", "AI summaries for dense admin activity logs.",
+     f"{SITE}/work/intelligent-activity-log-analyzer"),
+    ("gestura", "Gestura", "Experiment", "A canvas you can touch without touching.", "https://pinchgesture.vercel.app"),
+]
+
+
+def covers() -> dict[str, Image.Image]:
+    here = Path(__file__).resolve().parent / "covers"
+    return {
+        "proberoom": cover(Image.open(here / "proberoom.jpg"), *COVER),
+        "log-analyzer": cover(site_image("activity-log.png", "/work/previews/autodesk-activity-log-preview.png"), *COVER),
+        "gestura": laptop_cover(Image.open(here / "gestura-app.jpg"),
+                                [["#FFD27A", "#FFE6B5", "#C4E4FF"], ["#FFB48C", "#FFD8B8", "#A8D6FF"], ["#FF9475", "#FFC4A6", "#8FC8FF"]]),
+    }
+
+
+ROW_W, GUTTER = 846, 16                  # the hero's width; frames sit flush with its edges
+FRAME_W = (ROW_W - 2 * GUTTER) / 3
+
+
+def tile_pads(i: int) -> tuple[float, float]:
+    return (0 if i == 0 else GUTTER / 2, 0 if i == len(WORK) - 1 else GUTTER / 2)
+
+
+def work_tile(slug, name, meta, caption, art: Image.Image, mode: str, pads) -> None:
+    """A frame from the Work page: its name above, the cover, the one-liner below."""
+    gh = GITHUB[mode]
+    pad, pad_r = pads
+    cw = FRAME_W
+    W = cw + pad + pad_r
+    ch = cw * 5 / 8
+    lines = wrap(caption, "ui", 12.5, cw)
+    top = 22
+    H = round(top + ch + 14 + 2 * 18)
+    s = Svg(f(W), H, name, f"{name}, {meta}: {caption}")
+    img = art.convert("RGB").resize((round(cw * 2), round(ch * 2)), Image.LANCZOS)
+    s.add(s.text(pad, 13, name, "ui-sb", 12.5, gh["fg"]), s.text(pad + cw, 13, meta, "ui", 12, gh["muted"], "end"),
+          f'<image x="{pad}" y="{top}" width="{f(cw)}" height="{f(ch)}" preserveAspectRatio="none" href="{data_uri(img, q=84)}"/>',
+          f'<rect x="{pad + .5}" y="{top + .5}" width="{f(cw - 1)}" height="{f(ch - 1)}" stroke="{gh["line"]}" stroke-opacity=".12"/>')
+    for i, line in enumerate(lines):
+        s.add(s.text(pad, top + ch + 20 + i * 18, line, "ui", 12.5, gh["muted"]))
+    data = s.render()
+    (OUT / f"work-{slug}-{mode}.svg").write_text(data, encoding="utf-8")
+    print(f"work-{slug}-{mode}.svg  {len(data) / 1024:.0f} KB")
+
+
 if __name__ == "__main__":
+    art = covers()
     for mode in ("light", "dark"):
         hero(mode)
+        for i, (slug, name, meta, caption, _) in enumerate(WORK):
+            work_tile(slug, name, meta, caption, art[slug], mode, tile_pads(i))
