@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Builds the profile README's art: assets/hero-{light,dark}.svg and the Work row,
-assets/work-<project>-{light,dark}.svg.
+Builds assets/hero-light.svg and assets/hero-dark.svg for the profile README.
 
     pip install fonttools brotli pillow
     python3 scripts/build.py
@@ -15,8 +14,6 @@ and the frame shows rishiashar.com in that same theme.
 All motion is CSS keyframes, so it runs inside GitHub's image sandbox and
 collapses to the finished screen under prefers-reduced-motion. Fonts come from
 npm and the hero art from rishiashar.com; both are cached in scripts/.cache.
-Covers that only exist as live renders (ProbeRoom's shader, the Gestura app)
-are frozen in scripts/covers.
 """
 from __future__ import annotations
 
@@ -32,7 +29,7 @@ from xml.sax.saxutils import escape
 from fontTools import subset
 from fontTools.ttLib import TTFont
 from fontTools.varLib import instancer
-from PIL import Image, ImageDraw
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets"
@@ -968,132 +965,6 @@ def hero(mode: str) -> None:
     print(f"hero-{mode}.svg  {len(data) / 1024:.0f} KB, story {T['end']:.1f}s")
 
 
-# ===================================================================== WORK ===
-COVER = (1556, 974)        # the site's 8:5 work covers, at 2x
-GITHUB = {                 # Primer colours, so the captions read as part of the page
-    "light": dict(fg="#1F2328", muted="#59636E", line="#1F2328"),
-    "dark": dict(fg="#F0F6FC", muted="#9198A1", line="#F0F6FC"),
-}
-
-
-def wrap(text: str, font: str, size: float, max_w: float) -> list[str]:
-    """One line if it fits; otherwise two balanced lines, so nothing is left stranded."""
-    if FONTS[font].width(text, size) <= max_w:
-        return [text]
-    words = text.split()
-    splits = [(" ".join(words[:i]), " ".join(words[i:])) for i in range(1, len(words))]
-    fits = [sp for sp in splits if max(FONTS[font].width(x, size) for x in sp) <= max_w]
-    assert fits, f"{text!r} needs more than two lines"
-    return list(min(fits, key=lambda sp: abs(FONTS[font].width(sp[0], size) - FONTS[font].width(sp[1], size))))
-
-
-def mesh(rows, size) -> Image.Image:
-    """A soft gradient through a small grid of colours."""
-    tiny = Image.new("RGB", (len(rows[0]), len(rows)))
-    tiny.putdata([tuple(int(c[i:i + 2], 16) for i in (1, 3, 5)) for row in rows for c in row])
-    return tiny.resize(size, Image.BICUBIC)
-
-
-def laptop_cover(screen: Image.Image, colors) -> Image.Image:
-    """Gestura has no cover on the site, so it gets one in the site's language: a laptop bleeding
-    off the bottom-right of a soft gradient. Geometry measured from ProbeRoom's cover."""
-    W, H = COVER
-    im = mesh(colors, COVER)
-    x0, y0, r, bezel = 69, 78, 52, 23
-    lw = (933 - x0) * 2                          # full laptop width; the notch sits at its centre
-    d = ImageDraw.Draw(im)
-    d.rounded_rectangle((x0 - 3, y0 - 3, x0 + lw + 3, H + 200), r + 3, fill=(214, 216, 220))
-    d.rounded_rectangle((x0, y0, x0 + lw, H + 200), r, fill=(10, 10, 11))
-    sw = lw - 2 * bezel
-    shot = screen.convert("RGB").resize((sw, round(screen.height * sw / screen.width)), Image.LANCZOS)
-    mask = Image.new("L", shot.size, 0)
-    ImageDraw.Draw(mask).rounded_rectangle((0, 0, shot.width, shot.height + 100), r - bezel, fill=255)
-    im.paste(shot, (x0 + bezel, y0 + bezel), mask)
-    d.rounded_rectangle((x0 + lw // 2 - 90, y0 + bezel - 12, x0 + lw // 2 + 90, y0 + bezel + 22), 11, fill=(10, 10, 11))
-    return im
-
-
-FEATURED = [  # slug, name, context, the site's own one-liner, link
-    ("proberoom", "ProbeRoom", "Side project", "Rehearse user interviews out loud with an AI participant.", "https://proberoom.vercel.app"),
-    ("gestura", "Gestura", "Experiment", "A canvas you can touch without touching.", "https://pinchgesture.vercel.app"),
-]
-MORE = [
-    ("log-analyzer", "Activity Log Analyzer", "Autodesk", "AI summaries for dense admin activity logs.",
-     f"{SITE}/work/intelligent-activity-log-analyzer"),
-    ("settings", "Settings Redesign", "Autodesk", "Clearer Team Settings for Autodesk admins.", f"{SITE}/work/settings-redesign"),
-    ("uniconnect", "UniConnect", "UofT", "A student connection platform for new arrivals.", f"{SITE}/work/uniconnect"),
-]
-ROWS = [FEATURED, MORE]   # your own projects get the big frames
-
-
-def covers() -> dict[str, Image.Image]:
-    here = Path(__file__).resolve().parent / "covers"
-    return {
-        "proberoom": cover(Image.open(here / "proberoom.jpg"), *COVER),
-        "log-analyzer": cover(site_image("activity-log.png", "/work/previews/autodesk-activity-log-preview.png"), *COVER),
-        "settings": cover(site_image("settings.png", "/work/previews/autodesk-settings-preview.png"), *COVER),
-        "uniconnect": cover(Image.open(here / "uniconnect.jpg"), *COVER),
-        "gestura": laptop_cover(Image.open(here / "gestura-app.jpg"),
-                                [["#FFD27A", "#FFE6B5", "#C4E4FF"], ["#FFB48C", "#FFD8B8", "#A8D6FF"], ["#FF9475", "#FFC4A6", "#8FC8FF"]]),
-    }
-
-
-ROW_W, GUTTER = 846, 16                  # the hero's width; frames sit flush with its edges
-
-
-def row_layout(n: int):
-    """Frame width and (left, right) padding for each tile in a row of n."""
-    fw = (ROW_W - (n - 1) * GUTTER) / n
-    return fw, [(0 if i == 0 else GUTTER / 2, 0 if i == n - 1 else GUTTER / 2) for i in range(n)]
-
-
-def work_tile(slug, name, meta, caption, art: Image.Image, mode: str, cw: float, pads, rows_of_text: int) -> None:
-    """A frame from the Work page: its name above, the cover, the one-liner below."""
-    gh = GITHUB[mode]
-    pad, pad_r = pads
-    W = cw + pad + pad_r
-    ch = cw * 5 / 8
-    lines = wrap(caption, "ui", 12.5, cw)
-    top = 22
-    H = round(top + ch + 14 + rows_of_text * 18)   # the row's tallest caption sets everyone's height
-    s = Svg(f(W), H, name, f"{name}, {meta}: {caption}")
-    img = art.convert("RGB").resize((round(cw * 2), round(ch * 2)), Image.LANCZOS)
-    s.add(s.text(pad, 13, name, "ui-sb", 12.5, gh["fg"]), s.text(pad + cw, 13, meta, "ui", 12, gh["muted"], "end"),
-          f'<image x="{pad}" y="{top}" width="{f(cw)}" height="{f(ch)}" preserveAspectRatio="none" href="{data_uri(img, q=84)}"/>',
-          f'<rect x="{pad + .5}" y="{top + .5}" width="{f(cw - 1)}" height="{f(ch - 1)}" stroke="{gh["line"]}" stroke-opacity=".12"/>')
-    for i, line in enumerate(lines):
-        s.add(s.text(pad, top + ch + 20 + i * 18, line, "ui", 12.5, gh["muted"]))
-    data = s.render()
-    (OUT / f"work-{slug}-{mode}.svg").write_text(data, encoding="utf-8")
-    print(f"work-{slug}-{mode}.svg  {len(data) / 1024:.0f} KB")
-
-
-def readme_work() -> None:
-    """Write the Work rows into README.md between the work markers, widths matched to the tiles."""
-    rows = []
-    for row in ROWS:
-        fw, pads = row_layout(len(row))
-        tiles = ""
-        for (slug, name, meta, caption, link), (pl, pr) in zip(row, pads):
-            pct = f"{(fw + pl + pr) / ROW_W * 100 - .05:.2f}%"      # a hair under 100% so a row never wraps
-            tiles += (f'<a href="{link}"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/work-{slug}-dark.svg">'
-                      f'<img src="assets/work-{slug}-light.svg" width="{pct}" alt="{name}, {meta}: {caption}"></picture></a>')
-        rows.append(f"<p>{tiles}</p>")
-    path = ROOT / "README.md"
-    text = path.read_text(encoding="utf-8")
-    start, end = "<!-- work:start -->", "<!-- work:end -->"
-    head, rest = text.split(start)
-    _, tail = rest.split(end)
-    path.write_text(head + start + "\n" + "\n\n".join(rows) + "\n" + end + tail, encoding="utf-8")
-
-
 if __name__ == "__main__":
-    art = covers()
     for mode in ("light", "dark"):
         hero(mode)
-        for row in ROWS:
-            fw, pads = row_layout(len(row))
-            lines = max(len(wrap(caption, "ui", 12.5, fw)) for _, _, _, caption, _ in row)
-            for (slug, name, meta, caption, _), p in zip(row, pads):
-                work_tile(slug, name, meta, caption, art[slug], mode, fw, p, lines)
-    readme_work()
