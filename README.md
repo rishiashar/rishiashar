@@ -1,11 +1,7 @@
-<p align="center"><img src="assets/hero.svg" width="100%" alt="A Figma file in dark mode. Rishi draws a frame and types 'Rishi Ashar' in Fraunces, Claude joins and fills in the about text and stack chips (TypeScript, React, Next.js, Framer Motion, WebGL, Web Audio), then Rishi opens the Prototype tab and drags a custom bezier into ease-out-expo. Experience designer in Toronto, designing and prototyping ideas with AI and emerging tools."></p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="assets/hero-light.svg">
+  <img src="assets/hero-light.svg" width="100%" alt="A Figma file. Rishi draws a frame, drops in the sky from rishiashar.com and types 'I am an Experience Designer'. Claude joins and finishes the sentence: in Toronto, designing and prototyping ideas using AI and emerging tools. Then Rishi opens the Prototype tab and drags a custom bezier into ease-out-expo.">
+</picture>
 
 <p align="center"><a href="https://rishiashar.com">rishiashar.com</a> &nbsp;·&nbsp; <a href="https://www.linkedin.com/in/rishiashar7/">LinkedIn</a> &nbsp;·&nbsp; <a href="https://x.com/that_rishi07">@that_rishi07</a> &nbsp;·&nbsp; <a href="https://rishiashar.medium.com/">Medium</a> &nbsp;·&nbsp; <a href="mailto:rishiasharv@gmail.com">rishiasharv@gmail.com</a></p>
-
-<p align="center"><a href="https://proberoom.vercel.app"><img src="assets/tile-proberoom.svg" width="423" alt="ProbeRoom: rehearse user interviews out loud with an AI participant. 2026."></a><a href="https://github.com/rishiashar/pinch-gesture-canvas"><img src="assets/tile-gestura.svg" width="423" alt="Gestura: a touchless canvas driven by hand pinch gestures tracked with MediaPipe."></a><a href="https://rishiashar.com/work/intelligent-activity-log-analyzer"><img src="assets/tile-log-analyzer.svg" width="211" alt="Log Analyzer at Autodesk: AI summaries for dense admin activity logs."></a><a href="https://rishiashar.com/work/settings-redesign"><img src="assets/tile-team-settings.svg" width="211" alt="Team Settings at Autodesk: clearer settings for admins."></a><a href="https://rishiashar.com"><img src="assets/tile-footprint.svg" width="211" alt="UofT Footprint at MADLab: low-pressure campus discovery."></a><a href="https://rishiashar.com/play"><img src="assets/tile-play.svg" width="211" alt="Play: motion and sound experiments."></a></p>
-
-<p align="center"><sub>Kind words from people I've worked with</sub></p>
-
-<p align="center"><img src="assets/quote-autodesk.svg" width="423" alt="Renata Lewis, Principal Experience Designer at Autodesk: I was so impressed by his talent and initiative. He quickly ramped up on a complex project and delivered high-quality design work. He also went above and beyond to find creative ways to experiment with AI and proposed thoughtful new solutions."><img src="assets/quote-wehear.svg" width="423" alt="Kanishka Patel, CEO and Co-Founder of WeHear Innovations: Rishi was an exceptional UX Designer intern at WeHear. His dedication and innovative user testing techniques significantly improved our product. His creativity and teamwork made a big impact on our projects."></p>
-
-<p align="center"><img src="assets/off-canvas.svg" width="100%" alt="Off-canvas: photography, rap and music, geopolitics, storytelling."></p>
