@@ -78,7 +78,8 @@ class Font:
         pkg, file, inst, self.family, self.weight = FONT_FILES[key]
         tgz = fetch(f"{pkg}.tgz", PACKAGES[pkg])
         raw = tarfile.open(fileobj=io.BytesIO(tgz)).extractfile(f"package/files/{file}").read()
-        font = instancer.instantiateVariableFont(TTFont(io.BytesIO(raw)), inst)
+        # recalcTimestamp=False keeps head.modified fixed, so rebuilding is byte-for-byte reproducible
+        font = instancer.instantiateVariableFont(TTFont(io.BytesIO(raw), recalcTimestamp=False), inst)
         font.flavor = None
         buf = io.BytesIO()
         font.save(buf)
@@ -97,7 +98,7 @@ class Font:
         opts.hinting = False
         opts.desubroutinize = True
         opts.name_IDs = [1, 2]
-        font = TTFont(io.BytesIO(self.data))
+        font = TTFont(io.BytesIO(self.data), recalcTimestamp=False)
         sub = subset.Subsetter(opts)
         sub.populate(text=chars)
         sub.subset(font)
