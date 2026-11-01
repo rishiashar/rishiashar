@@ -203,7 +203,8 @@ class Svg:
             data = base64.b64encode(FONTS[key].subset_woff2("".join(sorted(chars)) + " ")).decode()
             faces.append(f"@font-face{{font-family:{fam};font-weight:{wt};"
                          f"src:url(data:font/woff2;base64,{data}) format('woff2')}}")
-        fams = "".join(f".{k.lower()}{{font-family:{k},{v}}}" for k, v in FALLBACK.items())
+        used = {CSS_FAMILY[k][0] for k in self.chars}
+        fams = "".join(f".{k.lower()}{{font-family:{k},{v}}}" for k, v in FALLBACK.items() if k in used)
         css = "".join(faces) + fams + "".join(self.css) + (
             "@media (prefers-reduced-motion:reduce){*{animation:none!important}}")
         return (
